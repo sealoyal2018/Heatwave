@@ -1,0 +1,6 @@
+@Heatwave.HostApi_HostAddress = http://localhost:5286
+
+GET {{Heatwave.HostApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
