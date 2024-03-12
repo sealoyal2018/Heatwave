@@ -1,0 +1,64 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using System.Reflection;
+
+namespace Heatwave.Application.Extensions;
+internal static class MappingExtensions
+{
+    //public static Task<PaginatedList<TDestination>> PaginatedListAsync<TDestination>(this IQueryable<TDestination> queryable, int pageNumber, int pageSize) where TDestination : class
+    // => PaginatedList<TDestination>.CreateAsync(queryable.AsNoTracking(), pageNumber, pageSize);
+
+    //public static Task<List<TDestination>> ProjectToListAsync<TDestination>(this IQueryable queryable, IConfigurationProvider configuration) where TDestination : class
+    //    => queryable.ProjectTo<TDestination>(configuration).AsNoTracking().ToListAsync();
+}
+public interface IMapFrom<T>
+{
+    void Mapping(Profile profile) => profile.CreateMap(typeof(T), GetType());
+}
+
+internal class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        ApplyMappingsFromAssembly(Assembly.GetExecutingAssembly());
+    }
+
+    private void ApplyMappingsFromAssembly(Assembly assembly)
+    {
+        var mapFromType = typeof(IMapFrom<>);
+
+        var mappingMethodName = nameof(IMapFrom<object>.Mapping);
+
+        bool HasInterface(Type t) => t.IsGenericType && t.GetGenericTypeDefinition() == mapFromType;
+
+        var types = assembly.GetExportedTypes().Where(t => t.GetInterfaces().Any(HasInterface)).ToList();
+
+        var argumentTypes = new Type[] { typeof(Profile) };
+
+        foreach (var type in types)
+        {
+            var instance = Activator.CreateInstance(type);
+
+            var methodInfo = type.GetMethod(mappingMethodName);
+
+            if (methodInfo != null)
+            {
+                methodInfo.Invoke(instance, new object[] { this });
+            }
+            else
+            {
+                var interfaces = type.GetInterfaces().Where(HasInterface).ToList();
+
+                if (interfaces.Count > 0)
+                {
+                    foreach (var @interface in interfaces)
+                    {
+                        var interfaceMethodInfo = @interface.GetMethod(mappingMethodName, argumentTypes);
+
+                        interfaceMethodInfo?.Invoke(instance, new object[] { this });
+                    }
+                }
+            }
+        }
+    }
+}

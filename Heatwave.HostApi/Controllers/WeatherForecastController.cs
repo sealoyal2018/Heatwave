@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 
 namespace Heatwave.HostApi.Controllers;
-[ApiController]
-[Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+
+public class WeatherForecastController : ApiControllerBase
 {
     private static readonly string[] Summaries = new[]
     {
