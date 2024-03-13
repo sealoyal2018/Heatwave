@@ -1,4 +1,6 @@
-﻿using Heatwave.Domain;
+﻿using System.Reflection;
+
+using Heatwave.Domain;
 using Heatwave.Infrastructure.DI;
 using Heatwave.Infrastructure.Persistence;
 using Heatwave.Infrastructure.Persistence.Extensions;
@@ -15,9 +17,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(v => v.FullName.Contains("Heatwave")).ToList();
+
         services.Scan(tss =>
         {
-            tss.FromApplicationDependencies()
+            tss.FromAssemblies(assemblies)
             .AddClasses(t => t.AssignableTo<IScoped>()).AsSelfWithInterfaces().WithScopedLifetime()
             .AddClasses(t => t.AssignableTo<ITransient>()).AsSelfWithInterfaces().WithTransientLifetime()
             .AddClasses(t => t.AssignableTo<ISingleton>()).AsSelfWithInterfaces().WithSingletonLifetime();
@@ -40,7 +44,6 @@ public static class DependencyInjection
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
             });
-            opts.UseBatchEF_Npgsql();
         });
 
         services.AddScoped<IDbAccessor, PostgreSqlDbAccessor>();

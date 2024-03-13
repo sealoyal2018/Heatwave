@@ -19,7 +19,7 @@ public class ValidateLoginCommandHandler : ICommandHandler<ValidateLoginCommand,
     public async Task<User> Handle(ValidateLoginCommand request, CancellationToken cancellationToken)
     {
 
-        var user = await dbAccessor.GetIQueryable<User>()
+        var user = await dbAccessor.GetIQueryable<User>().IgnoreQueryFilters()
             .Where(v => v.Email == request.UserName || v.PhoneNumber == request.UserName)
             .FirstOrDefaultAsync();
         if (user is null)

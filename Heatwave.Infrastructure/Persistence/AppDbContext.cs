@@ -12,6 +12,8 @@ using Z.EntityFramework.Plus;
 using Z.EntityFramework.Extensions.EFCore;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.Extensions.Options;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Heatwave.Infrastructure.Persistence;
 
@@ -22,7 +24,7 @@ internal class AppDbContext : DbContext
     private readonly IMediator mediator;
 
     public AppDbContext(DbContextOptions<AppDbContext> options, IDateTimeService dateTimeService, ICurrentUser currentUser, IMediator mediator)
-        :base(options)
+        : base(options)
     {
         this.dateTimeService = dateTimeService;
         this.currentUser = currentUser;
@@ -48,8 +50,22 @@ internal class AppDbContext : DbContext
             var builder = modelBuilder.Entity(type);
             if (type.IsAssignableFrom(typeof(ISoftDeleted)))
                 builder = ISoftDeletedExtensions.AddSoftDeletedQueryFilter(builder);
+
+            
+            Expression<Func<ISoftDeleted, bool>> expr = e => !e.IsDeleted;
+            if (typeof(ISoftDeleted).IsAssignableFrom(type))
+            {
+                modelBuilder.Entity(type).Property<Boolean>(nameof(ISoftDeleted.IsDeleted));
+                var parameter = Expression.Parameter(type, "e");
+                var body = Expression.Equal(Expression.Call(typeof(EF), nameof(EF.Property), new[] { typeof(bool) }, parameter, Expression.Constant(nameof(ISoftDeleted.IsDeleted))), Expression.Constant(false));
+                modelBuilder.Entity(type).HasQueryFilter(Expression.Lambda(body, parameter));
+            }
         }
+        this.Filter<User>(FilterKeys.SoftDeleted, t => t.Where(v => !v.IsDeleted));
+        this.Filter<ITenant>(FilterKeys.Tenant, t => t.Where(v => v.TenantId == 3));
+
         //modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
+
 }

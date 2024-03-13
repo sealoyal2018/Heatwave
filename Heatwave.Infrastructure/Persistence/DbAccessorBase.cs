@@ -11,6 +11,8 @@ using Heatwave.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
+using Z.EntityFramework.Plus;
+
 namespace Heatwave.Infrastructure.Persistence;
 internal abstract class DbAccessorBase : IDbAccessor
 {
@@ -172,7 +174,7 @@ internal abstract class DbAccessorBase : IDbAccessor
 
     public IQueryable<T> GetIQueryable<T>(bool tracking = false, CancellationToken cancellation = default) where T : class
     {
-        if(tracking)
+        if (tracking)
             return dbContext.Set<T>();
         return dbContext.Set<T>().AsNoTracking();
     }
@@ -395,4 +397,15 @@ public enum DatabaseType
     /// SQLite数据库
     /// </summary>
     SQLite
+}
+
+public record FilterKeys
+{
+    public string Name { get; }
+    private FilterKeys(string name) {
+        this.Name = name;
+    }
+
+    public static FilterKeys SoftDeleted = new("SoftDeleted");
+    public static FilterKeys Tenant = new("Tenant");
 }
