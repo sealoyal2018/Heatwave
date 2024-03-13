@@ -1,6 +1,8 @@
 ﻿using Heatwave.Domain;
 using Heatwave.Infrastructure.DI;
 using Heatwave.Infrastructure.Persistence;
+using Heatwave.Infrastructure.Persistence.Extensions;
+using Heatwave.Infrastructure.Persistence.Interceptors;
 using Heatwave.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -26,14 +28,19 @@ public static class DependencyInjection
         var databaseOptionSection = configuration.GetRequiredSection(DataBaseOption.Name);
         var databaseOption = databaseOptionSection.Get<DataBaseOption>();
 
-        services.AddDbContext<AppDbContext>(opts =>
+        services.AddDbContext<AppDbContext>((sp, opts) =>
         {
-            opts.AddInterceptors();
+            opts.AddInterceptors(
+                sp.GetRequiredService<DispatchDomainEventsInterceptor>(),
+                sp.GetRequiredService<AuditableEntityInterceptor>(),
+                sp.GetRequiredService<ISoftInterceptor>()
+            );
             opts.UseNpgsql(databaseOption.ConnectionString, act =>
             {
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
             });
+            opts.UseBatchEF_Npgsql();
         });
 
         services.AddScoped<IDbAccessor, PostgreSqlDbAccessor>();

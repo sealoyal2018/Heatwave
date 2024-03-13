@@ -20,7 +20,8 @@ internal class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, User>
 
     public async Task<User> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        return await dbAccessor.GetIQueryable<User>().FirstOrDefaultAsync(v => v.Id == request.Id);
+        return await dbAccessor.GetIQueryable<User>()
+            .FirstOrDefaultAsync(v => v.Id == request.Id);
     }
 }
 
