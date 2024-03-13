@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace Heatwave.Application.Extensions;
-internal static class StringExtensions
+public static class StringExtensions
 {
     // <summary>
     /// Is it a non whitespace character
@@ -130,5 +131,13 @@ internal static class StringExtensions
         {
             return nums;
         }
+    }
+
+    public static string EncodeMD5(this string str)
+    {
+        using var md5 = MD5.Create();
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var md5Array = md5.ComputeHash(bytes);
+        return Encoding.UTF8.GetString(md5Array);
     }
 }

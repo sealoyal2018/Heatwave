@@ -30,6 +30,8 @@ public class PaginatedList<T>
 
 public class PaginatedInputBase
 {
+    private int index = 1;
+
     /// <summary>
     /// 页大小
     /// </summary>
@@ -37,7 +39,16 @@ public class PaginatedInputBase
     /// <summary>
     /// 当前页
     /// </summary>
-    public int Index { get; set; }
+    public int Index
+    {
+        get => index;
+        set
+        {
+            index = value;
+            if (index < 1)
+                index = 1;
+        }
+    }
     /// <summary>
     /// 排序字段
     /// </summary>

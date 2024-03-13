@@ -1,9 +1,6 @@
 ﻿using System.Data.Common;
 
 using Heatwave.Domain;
-using Heatwave.Infrastructure.DI;
-
-using Microsoft.EntityFrameworkCore;
 
 using Npgsql;
 

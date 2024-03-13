@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Heatwave.Application;
+namespace Heatwave.Application.Common;
 public interface ICommand: IRequest
 {
 }

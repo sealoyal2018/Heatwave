@@ -16,6 +16,9 @@ builder.Services.AddControllers(opts =>
     opts.Filters.Add<ExceptionFilter>();
     opts.Filters.Add<ResultFilter>();
 });
+
+builder.Services.AddDistributedMemoryCache();
+
 _ = builder.Services.AddSwagger()
     .AddInfrastructure(builder.Configuration)
     .AddApplication(builder.Configuration);
@@ -69,6 +72,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 }
+
 app.UseCors(opts =>
 {
     opts.SetIsOriginAllowed(_ => true)
@@ -83,5 +87,4 @@ app.UseAuthorization();
 
 app.MapControllers().RequireAuthorization();
 app.MapHubs();
-
 app.Run();

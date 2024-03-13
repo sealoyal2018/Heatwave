@@ -1,6 +1,7 @@
 ﻿using Heatwave.Domain;
 using Heatwave.Infrastructure.DI;
 using Heatwave.Infrastructure.Persistence;
+using Heatwave.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -12,16 +13,19 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Scan(scan =>
-            scan.FromApplicationDependencies()
-                .AddClasses(c => c.AssignableTo<ITransient>()).AsImplementedInterfaces().WithTransientLifetime()
-                .AddClasses(c => c.AssignableTo<IScoped>()).AsImplementedInterfaces().WithScopedLifetime()
-                .AddClasses(c => c.AssignableTo<ISingleton>()).AsImplementedInterfaces().WithSingletonLifetime()
-        );
+        services.Scan(tss =>
+        {
+            tss.FromApplicationDependencies()
+            .AddClasses(t => t.AssignableTo<IScoped>()).AsSelfWithInterfaces().WithScopedLifetime()
+            .AddClasses(t => t.AssignableTo<ITransient>()).AsSelfWithInterfaces().WithTransientLifetime()
+            .AddClasses(t => t.AssignableTo<ISingleton>()).AsSelfWithInterfaces().WithSingletonLifetime();
+        });
+
 
         #region dbcontext
         var databaseOptionSection = configuration.GetRequiredSection(DataBaseOption.Name);
         var databaseOption = databaseOptionSection.Get<DataBaseOption>();
+
         services.AddDbContext<AppDbContext>(opts =>
         {
             opts.AddInterceptors();
@@ -34,6 +38,8 @@ public static class DependencyInjection
 
         services.AddScoped<IDbAccessor, PostgreSqlDbAccessor>();
         #endregion dbcontext
+
+        services.AddScoped<CaptchaService>();
 
         return services;
     }
