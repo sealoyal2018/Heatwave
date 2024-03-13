@@ -1,4 +1,6 @@
-﻿namespace Heatwave.HostApi;
+﻿using Heatwave.Domain;
+
+namespace Heatwave.HostApi;
 
 public static class DependencyInjection
 {
@@ -6,6 +8,7 @@ public static class DependencyInjection
     {
         services.AddHttpContextAccessor();
         services.AddDistributedMemoryCache();
+        services.AddScoped<ICurrentUser, CurrentUser>();
         return services;
     }
 }

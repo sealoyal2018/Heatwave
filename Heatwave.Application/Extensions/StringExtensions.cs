@@ -138,6 +138,11 @@ public static class StringExtensions
         using var md5 = MD5.Create();
         var bytes = Encoding.UTF8.GetBytes(str);
         var md5Array = md5.ComputeHash(bytes);
-        return Encoding.UTF8.GetString(md5Array);
+        StringBuilder sb = new StringBuilder();
+        foreach (var item in md5Array)
+        {
+            sb.Append(item.ToString("X2"));
+        }
+        return sb.ToString();
     }
 }

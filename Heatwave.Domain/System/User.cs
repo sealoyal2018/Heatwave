@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Heatwave.Domain.System;
 
 /// <summary>
 /// 用户
 /// </summary>
+[Table("sys_user")]
 public class User : AuditableEntity
 {
     /// <summary>

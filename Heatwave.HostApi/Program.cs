@@ -2,89 +2,64 @@ using Heatwave.Application;
 using Heatwave.Infrastructure;
 using Heatwave.HostApi.Extensions;
 using Heatwave.HostApi.Filters;
-using Heatwave.HostApi.Options;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Heatwave.Application.Common;
+using Heatwave.Infrastructure.Authentication;
+using Heatwave.Domain;
+using Heatwave.HostApi;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-builder.Services.AddControllers(opts =>
+internal class Program
 {
-    opts.Filters.Add<ExceptionFilter>();
-    opts.Filters.Add<ResultFilter>();
-});
-
-builder.Services.AddDistributedMemoryCache();
-
-_ = builder.Services.AddSwagger()
-    .AddInfrastructure(builder.Configuration)
-    .AddApplication(builder.Configuration);
-
-#region jwt хож╓
-var jwtConfig = builder.Configuration.GetSection(JwtOption.Name);
-builder.Services.Configure<JwtOption>(jwtConfig);
-var jwt = jwtConfig.Get<JwtOption>();
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(o =>
-{
-    o.TokenValidationParameters = new TokenValidationParameters
+    private static void Main(string[] args)
     {
-        ValidIssuer = jwt.Issuer,
-        ValidAudience = jwt.Audience,
-        IssuerSigningKey = jwt.SecurityKey,
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = true
-    };
-    o.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        { // signalr
-            var accessToken = context.Request.Query["access_token"];
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                context.Token = context.Request.Query["access_token"];
-            }
-            return Task.CompletedTask;
+        var builder = WebApplication.CreateBuilder(args);
+
+
+        #region IdHelper
+        var idGeneratorSection = builder.Configuration.GetSection(IdGeneratorOption.Name);
+        IdHelper.Initialization(idGeneratorSection.Get<IdGeneratorOption>());
+        #endregion
+
+        // Add services to the container.
+        builder.Services.AddDistributedMemoryCache();
+
+        _ = builder.Services.AddSwagger()
+            .AddInfrastructure(builder.Configuration)
+            .AddApplication(builder.Configuration)
+            .AddHostApi(builder.Configuration);
+
+        builder.Services.AddAuthentication(RequestAuthenticationSchemeOptions.SchemeName)
+            .AddScheme<RequestAuthenticationSchemeOptions, RequestAuthenticationHandler>(RequestAuthenticationSchemeOptions.SchemeName, opts => { });
+
+        builder.Services.AddControllers(opts =>
+        {
+            opts.Filters.Add<ExceptionFilter>();
+            opts.Filters.Add<ResultFilter>();
+        });
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
         }
-    };
-});
-builder.Services.AddAuthorization();
-#endregion
 
-#region IdHelper
-var idGeneratorSection = builder.Configuration.GetSection(IdGeneratorOption.Name);
-IdHelper.Initialization(idGeneratorSection.Get<IdGeneratorOption>());
-#endregion
+        app.UseCors(opts =>
+        {
+            opts.SetIsOriginAllowed(_ => true)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+        app.UseAuthorization();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
+        app.MapControllers().RequireAuthorization();
+        app.MapHubs();
+        app.Run();
+    }
 }
 
-app.UseCors(opts =>
-{
-    opts.SetIsOriginAllowed(_ => true)
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
-});
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseAuthentication();
-app.UseAuthorization();
+#region IdHelper
 
-app.MapControllers().RequireAuthorization();
-app.MapHubs();
-app.Run();
+#endregion

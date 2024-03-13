@@ -15,8 +15,6 @@ internal class UserRoleEntityTypeConfiguration : IEntityTypeConfiguration<UserRo
         builder.Property(v => v.RoleId).IsRequired();
         builder.Property(v => v.UserId).IsRequired();
 
-        builder.OwnsOne(v => v.Role);
-
         builder.HasIndex(v => v.UserId);
     }
 }

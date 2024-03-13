@@ -1,25 +1,22 @@
-﻿using Heatwave.Domain;
+﻿using Heatwave.Application.Interfaces;
+using Heatwave.Domain;
 using Heatwave.Domain.System;
 
 namespace Heatwave.Application.System.UserTokens;
 
-public class CreateUserTokenCommand: ICommand<UserToken>
-{
-    public long UserId { get; set; }
-    public string Token { get; set; }
-    public string RefreshToken { get; set; }
-    public DateTime ExpirationDate { get; set; }
-    public string IpAddress { get; set; }
-    public bool RefreshTokenIsAvailable { get; set; }
-}
+public record CreateUserTokenCommand(long UserId, string IpAddress) : ICommand<UserToken>;
 
-public class CreateUserTokenCommandHandler : ICommandHandler<CreateUserTokenCommand,UserToken>
+public class CreateUserTokenCommandHandler : ICommandHandler<CreateUserTokenCommand, UserToken>
 {
     private readonly IDbAccessor dbAccessor;
+    private readonly IDateTimeService dateTimeService;
+    private readonly IMediator mediator;
 
-    public CreateUserTokenCommandHandler(IDbAccessor dbAccessor)
+    public CreateUserTokenCommandHandler(IDbAccessor dbAccessor, IDateTimeService dateTimeService, IMediator mediator)
     {
         this.dbAccessor = dbAccessor;
+        this.dateTimeService = dateTimeService;
+        this.mediator = mediator;
     }
 
     public async Task<UserToken> Handle(CreateUserTokenCommand request, CancellationToken cancellationToken)
@@ -27,13 +24,15 @@ public class CreateUserTokenCommandHandler : ICommandHandler<CreateUserTokenComm
         var newUserToken = new UserToken
         {
             Id = IdHelper.GetLong(),
-            ExpirationDate = request.ExpirationDate,
+            ExpirationDate = dateTimeService.Current().AddMinutes(10),
             UserId = request.UserId,
-            Token = request.Token,
-            TokenHash = request.Token.EncodeMD5(),
             IpAddress = request.IpAddress,
-            RefreshTokenIsAvailable = request.RefreshTokenIsAvailable
+            RefreshTokenExpirationDate = dateTimeService.Current().AddMonths(1)
         };
+        newUserToken.Token = newUserToken.GenerateToken();
+        newUserToken.TokenHash = newUserToken.Token.EncodeMD5();
+        newUserToken.RefreshToken = newUserToken.GenerateToken();
+
         await dbAccessor.InsertAsync(newUserToken);
         return newUserToken;
     }

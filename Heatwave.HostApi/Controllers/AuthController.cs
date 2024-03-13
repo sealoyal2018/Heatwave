@@ -1,7 +1,9 @@
 ﻿using Heatwave.Application.Extensions;
+using Heatwave.Application.Interfaces;
 using Heatwave.Application.System.Users;
 using Heatwave.Application.System.UserTokens;
 using Heatwave.Domain;
+using Heatwave.Domain.System;
 using Heatwave.Infrastructure.Services;
 
 using MediatR;
@@ -11,19 +13,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Heatwave.HostApi.Controllers;
 
+/// <summary>
+/// 认证
+/// </summary>
 public class AuthController : ApiControllerBase
 {
     private readonly IMediator mediator;
     private readonly CaptchaService captchaService;
     private readonly ICurrentUser currentUser;
-    private readonly JwtService jwtService;
 
-    public AuthController(IMediator mediator, CaptchaService captchaService, ICurrentUser currentUser, JwtService jwtService)
+    public AuthController(IMediator mediator, CaptchaService captchaService, ICurrentUser currentUser)
     {
         this.mediator = mediator;
         this.captchaService = captchaService;
         this.currentUser = currentUser;
-        this.jwtService = jwtService;
     }
 
     /// <summary>
@@ -42,7 +45,7 @@ public class AuthController : ApiControllerBase
     /// <returns></returns>
     [AllowAnonymous]
     [HttpPost]
-    public async Task<UserTokenDisplay> Token(ValidateLoginCommand request)
+    public async Task<UserToken> Token(ValidateLoginCommand request)
     {
         var ret = await captchaService.ValidateAsync(request.Code, request.Key);
         if (ret)
@@ -50,27 +53,16 @@ public class AuthController : ApiControllerBase
         var user = await mediator.Send(request);
 
         var ip = Request.GetRemoteIpAddress();
-
-        var token = jwtService.GenerateToken(user);
-        
-        var createUserTokenCommand = new CreateUserTokenCommand
-        {
-            UserId = user.Id,
-            Token = token,
-            RefreshToken = "",
-            ExpirationDate = dateTimeService.Current().AddHours(10),
-            IpAddress = ip,
-            RefreshTokenIsAvailable = true,
-        };
-        return t;
+        var createUserTokenCommand = new CreateUserTokenCommand(user.Id, ip);
+        var token = await mediator.Send(createUserTokenCommand);
+        return token;
     }
-
 
     /// <summary>
     /// 退出登录
     /// </summary>
     /// <returns></returns>
-    [HttpPost("signout")]
+    [HttpPost]
     public async Task SignoutAsync()
     {
         if (!this.currentUser.IsAuthenticated)
@@ -79,21 +71,17 @@ public class AuthController : ApiControllerBase
         }
         var tokenHash = this.currentUser.Token.EncodeMD5();
         // 修改 UserToken 中的 ExpirationDate 为当前时间
-        var userToken = await userTokenService.GetAsync(a => a.TokenHash == tokenHash && a.UserId == this.CurrentUser.UserId);
-        if (userToken != null)
-        {
-            userToken.ExpirationDate = DateTime.Now;
-            await userTokenService.UpdateAsync(userToken);
-            // 删除 Redis 中的缓存
-            await redisService.DeleteAsync(CoreRedisConstants.UserToken.Format(userToken.TokenHash));
-        }
-
-        return Ok();
+        await mediator.Send(new DeletedUesrTokenCommand { TokenHash = tokenHash, UserId = currentUser.UserId });
     }
 
-    public async Task RefreshTokenAsync()
-        => await RefreshTokenAsync();
-
+    /// <summary>
+    /// 刷新token
+    /// </summary>
+    /// <param name="refresh"></param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<UserToken> RefreshTokenAsync(RefreshTokenCommand refresh)
+        => await mediator.Send(refresh);
 
 }
 

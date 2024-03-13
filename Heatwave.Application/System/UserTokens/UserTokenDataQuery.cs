@@ -10,7 +10,7 @@ namespace Heatwave.Application.System.UserTokens;
 public class UserTokenDataQuery: IQuery<UserTokenDisplay>
 {
     public long? UserId { get; set; }
-    public string Token { get; set; }
+    public string TokenHash { get; set; }
 }
 
 internal class UserTokenDataQueryHandler : IQueryHandler<UserTokenDataQuery, UserTokenDisplay>
@@ -27,13 +27,10 @@ internal class UserTokenDataQueryHandler : IQueryHandler<UserTokenDataQuery, Use
     public async Task<UserTokenDisplay> Handle(UserTokenDataQuery request, CancellationToken cancellationToken)
     {
         var queryable = dbAccessor.GetIQueryable<UserToken>()
-            .Include(t=> t.User)
-            .WhereIf(request.UserId.HasValue, v => v.UserId == request.UserId.Value);
-        if (request.Token.IsNotNullOrEmpty())
-        {
-            var hash = request.Token.EncodeMD5();
-            queryable = queryable.Where(v => v.TokenHash == hash);
-        }
+            .Include(t => t.User)
+            .WhereIf(request.UserId.HasValue, v => v.UserId == request.UserId.Value)
+            .WhereIf(request.TokenHash.IsNotNullOrEmpty(), v => v.TokenHash == request.TokenHash);
+
         var data = await queryable.FirstOrDefaultAsync();
         return mapper.Map<UserTokenDisplay>(data);
     }

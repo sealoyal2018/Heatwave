@@ -1,6 +1,6 @@
 ﻿using Denggaopan.Snowflake;
 
-namespace Heatwave.Application.Common;
+namespace Heatwave.Domain;
 
 public sealed class IdHelper
 {

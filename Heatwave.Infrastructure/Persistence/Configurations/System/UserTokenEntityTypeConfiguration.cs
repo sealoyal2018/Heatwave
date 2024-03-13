@@ -11,13 +11,6 @@ internal class UserTokenEntityTypeConfiguration : IEntityTypeConfiguration<UserT
 
         builder.Property(v => v.Id).IsRequired();
         builder.HasKey(v => v.Id);
-        builder.Property(v => v.CreatedBy).IsRequired();
-        builder.Property(v => v.CreatedTime).IsRequired();
-        builder.Property(v => v.ModifiedBy).HasComment("修改者");
-        builder.Property(v => v.ModifiedTime).HasComment("修改时间");
-        builder.Property(v => v.DeletedBy).HasComment("删除者");
-        builder.Property(v => v.DeletedTime).HasComment("删除时间");
-        builder.Property(v => v.IsDeleted).HasComment("是否删除").IsRequired().HasDefaultValue(false);
 
         builder.Property(v => v.UserId).IsRequired();
         builder.Property(v => v.Token).IsRequired().HasMaxLength(255).HasComment("token");
@@ -25,8 +18,7 @@ internal class UserTokenEntityTypeConfiguration : IEntityTypeConfiguration<UserT
         builder.Property(v => v.RefreshToken).HasMaxLength(255).HasComment("token刷新");
         builder.Property(v => v.ExpirationDate).IsRequired().HasComment("token过期时间");
         builder.Property(v => v.IpAddress).HasComment("获取token ip地址");
-        builder.Property(v => v.RefreshTokenIsAvailable).IsRequired().HasComment("refresh token是否有效");
-
+        builder.Property(v => v.RefreshTokenExpirationDate).IsRequired().HasComment("Refresh Token 过期时间");
         builder.HasOne(v => v.User);
     }
 }

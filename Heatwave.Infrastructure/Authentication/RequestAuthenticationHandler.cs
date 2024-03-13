@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using AutoMapper;
 
+using Heatwave.Application.Interfaces;
 using Heatwave.Application.System.UserTokens;
 using Heatwave.Domain;
 
@@ -21,14 +22,18 @@ namespace Heatwave.Infrastructure.Authentication;
 public class RequestAuthenticationHandler : AuthenticationHandler<RequestAuthenticationSchemeOptions>
 {
     private readonly IMediator mediator;
+    private readonly IDateTimeService dateTimeService;
+
     public RequestAuthenticationHandler(
         IOptionsMonitor<RequestAuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder,
         ISystemClock clock,
-        IMediator mediator) : base(options, logger, encoder, clock)
+        IMediator mediator,
+        IDateTimeService dateTimeService) : base(options, logger, encoder, clock)
     {
         this.mediator = mediator;
+        this.dateTimeService = dateTimeService;
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -39,12 +44,15 @@ public class RequestAuthenticationHandler : AuthenticationHandler<RequestAuthent
         {
             token = token.Trim();
 
-            var userToken = await this.mediator.Send(new UserTokenDataQuery { Token = token });
+            var userToken = await this.mediator.Send(new UserTokenDataQuery { TokenHash = token.EncodeMD5() });
             // 验证 Token 是否有效，并获取用户信息
             if (userToken is null)
             {
                 return AuthenticateResult.Fail("Invalid Token!");
             }
+
+            if(userToken.ExpirationDate.AddMinutes(2) < dateTimeService.Current())
+                return AuthenticateResult.Fail("Invalid Token!");
 
             var claims = new List<Claim>
             {
@@ -66,5 +74,5 @@ public class RequestAuthenticationHandler : AuthenticationHandler<RequestAuthent
 
 public class RequestAuthenticationSchemeOptions : AuthenticationSchemeOptions
 {
-
+    public static readonly string SchemeName = "Authorization-Token";
 }

@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using System.Text.Json.Serialization;
+
+using MediatR;
 
 namespace Heatwave.Domain;
 public abstract class EntityBase : IEntity
@@ -7,6 +9,7 @@ public abstract class EntityBase : IEntity
 
     private List<INotification> _domainEvents;
 
+    [JsonIgnore]
     public IReadOnlyCollection<INotification> DomainEvents => _domainEvents?.AsReadOnly();
 
     public void AddDomainEvent(INotification eventItem)

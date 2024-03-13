@@ -1,6 +1,10 @@
-﻿namespace Heatwave.Domain.System;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
 
-public class UserToken : AuditableEntity
+namespace Heatwave.Domain.System;
+
+[Table("sys_user_token")]
+public class UserToken : EntityBase
 {
     /// <summary>
     /// 用户编号
@@ -19,7 +23,7 @@ public class UserToken : AuditableEntity
     /// </summary>
     public string RefreshToken { get; set; }
     /// <summary>
-    /// 过期时间
+    /// token 过期时间
     /// </summary>
     public DateTime ExpirationDate { get; set; }
     /// <summary>
@@ -27,12 +31,26 @@ public class UserToken : AuditableEntity
     /// </summary>
     public string IpAddress { get; set; }
     /// <summary>
-    /// Refresh Token 是否有效
+    /// Refresh Token 过期时间
     /// </summary>
-    public bool RefreshTokenIsAvailable { get; set; }
+    public DateTime RefreshTokenExpirationDate { get; set; }
 
     /// <summary>
     /// Token 所属用户
     /// </summary>
     public virtual User User { get; set; }
+
+    /// <summary>
+    /// 生成token
+    /// </summary>
+    /// <returns></returns>
+    public string GenerateToken()
+    {
+        using var md5 = MD5.Create();
+        var key = IdHelper.GetLong();
+        var str = $"{key}-{this.UserId}";
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var md5Array = md5.ComputeHash(bytes);
+        return Convert.ToBase64String(md5Array);
+    }
 }
