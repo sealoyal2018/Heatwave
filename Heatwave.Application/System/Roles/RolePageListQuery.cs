@@ -1,6 +1,5 @@
-﻿using System.Linq.Expressions;
-
-using Chocolate.Domain.System;
+﻿using Heatwave.Domain;
+using Heatwave.Domain.System;
 
 namespace Chocolate.Application.System.Roles;
 public class RolePageListQuery(string roleName) : PaginatedInputBase, IQuery<PaginatedList<Role>>
@@ -10,16 +9,16 @@ public class RolePageListQuery(string roleName) : PaginatedInputBase, IQuery<Pag
 
 public class RolePageListQueryHandler : IQueryHandler<RolePageListQuery, PaginatedList<Role>>
 {
-    private readonly IFreeSql freeSql;
+    private readonly IDbAccessor dbAccessor;
 
-    public RolePageListQueryHandler(IFreeSql freeSql)
+    public RolePageListQueryHandler(IDbAccessor dbAccessor)
     {
-        this.freeSql = freeSql;
+        this.dbAccessor = dbAccessor;
     }
 
     public async Task<PaginatedList<Role>> Handle(RolePageListQuery request, CancellationToken cancellationToken)
     {
-        var d = await freeSql.Select<Role>()
+        var d = await dbAccessor.GetIQueryable<Role>()
             .WhereIf(string.IsNullOrEmpty(request.RoleName), v => v.Name.Contains(request.RoleName))
             .ToPageAsync(request);
         return d;

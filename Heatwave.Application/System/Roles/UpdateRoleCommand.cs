@@ -1,5 +1,5 @@
-﻿using Chocolate.Application.Common;
-using Chocolate.Domain.System;
+﻿using Heatwave.Domain;
+using Heatwave.Domain.System;
 
 namespace Chocolate.Application.System.Roles;
 public class UpdateRoleCommand : Role, ICommand
@@ -9,24 +9,24 @@ public class UpdateRoleCommand : Role, ICommand
 
 public class UpdateRoleCommandHandler : ICommandHandler<UpdateRoleCommand>
 {
-    private readonly IFreeSql freeSql;
-    public UpdateRoleCommandHandler(IFreeSql freeSql)
+    private readonly IDbAccessor dbAccessor;
+    public UpdateRoleCommandHandler(IDbAccessor dbAccessor)
     {
-        this.freeSql = freeSql;
+        this.dbAccessor = dbAccessor;
     }
 
     public async Task Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
     {
-        var role = await freeSql.Select<Role>().AnyAsync(v => v.Id == request.Id);
+        var role = await dbAccessor.GetIQueryable<Role>().AnyAsync(v => v.Id == request.Id);
         if (!role)
             throw new BusException("未找到相关数据");
-        await freeSql.Update<Role>(request.Id)
-            .Set(v => new Role { Name = request.Name, Description = request.Description })
-            .ExecuteAffrowsAsync();
 
-        _ = await freeSql.Delete<RoleResource>()
-            .Where(v => v.RoleId == request.Id)
-            .ExecuteAffrowsAsync();
+        await dbAccessor.UpdateAsync<Role>(
+            t => t.Id == request.Id,
+            s => s.SetProperty(t => t.Name, request.Name)
+                .SetProperty(t => t.Description, request.Description));
+
+        _ = await dbAccessor.DeleteAsync<RoleResource>(v => v.RoleId == request.Id);
         var roleResources = request.ResourceIds.Select(v => new RoleResource
         {
             Id = IdHelper.GetLong(),
@@ -34,6 +34,6 @@ public class UpdateRoleCommandHandler : ICommandHandler<UpdateRoleCommand>
             RoleId = request.Id,
         }).ToList();
 
-        await freeSql.Insert(roleResources).ExecuteAffrowsAsync(cancellationToken);
+        await dbAccessor.InsertAsync(roleResources, false, cancellationToken);
     }
 }

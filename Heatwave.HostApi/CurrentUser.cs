@@ -24,7 +24,7 @@ public class CurrentUser : ICurrentUser, IScoped
 
     public bool IsAuthenticated => this.httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
-
+    public List<long> TenantIds => [];
 
     public virtual Claim FindClaim(string claimType)
     {

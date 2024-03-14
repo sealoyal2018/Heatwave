@@ -1,26 +1,25 @@
-﻿
-using Chocolate.Domain.System;
+﻿using Heatwave.Domain;
+using Heatwave.Domain.System;
 
 namespace Chocolate.Application.System.Roles;
 public record DeletedRoleCommand(List<long> RoleIds): ICommand;
 
 public class DeletedRoleCommandHandler : ICommandHandler<DeletedRoleCommand>
 {
-    private readonly IFreeSql freeSql;
-
-    public DeletedRoleCommandHandler(IFreeSql freeSql)
+    private readonly IDbAccessor dbAccessor;
+    public DeletedRoleCommandHandler(IDbAccessor dbAccessor)
     {
-        this.freeSql = freeSql;
+        this.dbAccessor = dbAccessor;
     }
 
     public async Task Handle(DeletedRoleCommand request, CancellationToken cancellationToken)
     {
-        var roles = await freeSql.Select<Role>()
+        var roles = await dbAccessor.GetIQueryable<Role>()
             .Where(v => request.RoleIds.Contains(v.Id))
             .ToListAsync();
 
-        await freeSql.Delete<Role>(roles).ExecuteAffrowsAsync(cancellationToken);
-        await freeSql.Delete<RoleResource>().Where(v => request.RoleIds.Contains(v.RoleId)).ExecuteAffrowsAsync();
+        await dbAccessor.DeleteAsync(roles);
+        await dbAccessor.DeleteAsync<RoleResource>(v => request.RoleIds.Contains(v.RoleId));
     }
 }
 

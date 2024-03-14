@@ -8,6 +8,7 @@ public interface ICurrentUser
     UserType UserType { get; }
     string Token { get; }
     bool IsAuthenticated { get; }
+    List<long> TenantIds { get; }
 }
 
 

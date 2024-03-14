@@ -1,16 +1,16 @@
-﻿using Chocolate.Application.Common;
-using Chocolate.Domain.System;
+﻿using Heatwave.Domain;
+using Heatwave.Domain.System;
 
 namespace Chocolate.Application.System.Roles;
 public record CreateRoleCommand(string Name, string Desc, List<long> ResourceIds) : ICommand;
 
-public class CreateRoleCommandHandle(IFreeSql freeSql) : ICommandHandler<CreateRoleCommand>
+public class CreateRoleCommandHandle(IDbAccessor dbAccessor) : ICommandHandler<CreateRoleCommand>
 {
-    private readonly IFreeSql freeSql = freeSql;
+    private readonly IDbAccessor dbAccessor = dbAccessor;
 
     public async Task Handle(CreateRoleCommand request, CancellationToken cancellationToken)
     {
-        var ret = await freeSql.Select<Role>().AnyAsync(v => v.Name == request.Name);
+        var ret = await dbAccessor.GetIQueryable<Role>().AnyAsync(v => v.Name == request.Name);
         if (ret)
             throw new BusException("名称重复");
 
@@ -28,7 +28,7 @@ public class CreateRoleCommandHandle(IFreeSql freeSql) : ICommandHandler<CreateR
             RoleId = newRole.Id
         }).ToList();
 
-        await freeSql.Insert(newRole).ExecuteInsertedAsync(cancellationToken);
-        await freeSql.Insert(roleResources).ExecuteInsertedAsync(cancellationToken);
+        await dbAccessor.InsertAsync(newRole);
+        await dbAccessor.InsertAsync(roleResources);
     }
 }

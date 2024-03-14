@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Heatwave.Domain;
 /// <summary>
@@ -16,11 +17,6 @@ public interface IDbAccessor
     /// </summary>
     string ConnectionString { get; }
     
-    /// <summary>
-    /// 获取完整DbAccessor,通过此接口可以操作逻辑删除的数据
-    /// </summary>
-    IDbAccessor FullDbAccessor { get; }
-
     #endregion
 
     #region 事务
@@ -74,14 +70,14 @@ public interface IDbAccessor
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="key">主键</param>
-    Task<int> DeleteAsync<T>(long key, CancellationToken cancellation = default) where T : class;
+    Task<int> DeleteAsync<T>(long key, CancellationToken cancellation = default) where T : EntityBase;
 
     /// <summary>
     /// 删除多条记录
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="keys">多条记录主键集合</param>
-    Task<int> DeleteAsync<T>(List<long> keys, CancellationToken cancellation = default) where T : class;
+    Task<int> DeleteAsync<T>(List<long> keys, CancellationToken cancellation = default) where T : EntityBase;
 
     /// <summary>
     /// 删除所有记录
@@ -153,9 +149,9 @@ public interface IDbAccessor
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="whereExpre">筛选条件</param>
-    /// <param name="set">更新操作</param>
+    /// <param name="action">更新操作</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpre, Action<T> set, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpre, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> action, bool tracking = false, CancellationToken cancellation = default) where T : class;
     #endregion
 
     #region 查询数据
@@ -168,6 +164,15 @@ public interface IDbAccessor
     /// <param name="tracking">是否开启实体追踪</param>
     /// <returns></returns>
     IQueryable<T> GetIQueryable<T>(bool tracking = false, CancellationToken cancellation = default) where T : class;
+
+    /// <summary>
+    /// 获取IQueryable
+    /// 注:默认取消实体追踪
+    /// </summary>
+    /// <typeparam name="T">实体泛型</typeparam>
+    /// <param name="tracking">是否开启实体追踪</param>
+    /// <returns></returns>
+    IQueryable<T> GetAllIQueryable<T>(bool tracking = false, CancellationToken cancellation = default) where T : class;
 
     #endregion
 }

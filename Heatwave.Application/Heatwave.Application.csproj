@@ -8,11 +8,8 @@
 
   <ItemGroup>
     <Compile Remove="System\Resources\**" />
-    <Compile Remove="System\Roles\**" />
     <EmbeddedResource Remove="System\Resources\**" />
-    <EmbeddedResource Remove="System\Roles\**" />
     <None Remove="System\Resources\**" />
-    <None Remove="System\Roles\**" />
   </ItemGroup>
 
   <ItemGroup>
