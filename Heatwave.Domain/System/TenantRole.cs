@@ -1,8 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Heatwave.Domain.System;
-public class Role : AuditableEntity
+
+/// <summary>
+/// 租户角色
+/// </summary>
+[Table("sys_tenant_role")]
+public class TenantRole : AuditableEntity, ITenant
 {
+    public long TenantId { get; set; }
+
     /// <summary>
     /// 角色名称
     /// </summary>

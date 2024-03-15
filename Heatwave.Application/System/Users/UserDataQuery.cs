@@ -25,7 +25,7 @@ public class UserDataQueryHandler : IQueryHandler<UserDataQuery, UserDisplay>
             .FirstAsync();
 
         var data = mapper.Map<UserDisplay>(user);
-        var roles =  await dbAccessor.GetIQueryable<UserRole>()
+        var roles =  await dbAccessor.GetIQueryable<TenantUserRole>()
             .Include(v => v.Role)
             .Where(v => v.UserId == request.Id)
             .Select(v=> v.Role)
@@ -38,5 +38,5 @@ public class UserDataQueryHandler : IQueryHandler<UserDataQuery, UserDisplay>
 
 public class UserDisplay :  User, IMapFrom<User>
 {
-    public ICollection<Role> Roles { get; set; }
+    public ICollection<TenantRole> Roles { get; set; }
 }

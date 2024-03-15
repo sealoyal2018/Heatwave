@@ -4,11 +4,11 @@ using Heatwave.Domain.System;
 namespace Heatwave.Application.System.Users;
 public record DeleteUserCommand(List<long> Ids): ICommand;
 
-public class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand>
+public class UserDeleteCommandHandler : ICommandHandler<DeleteUserCommand>
 {
     private readonly IDbAccessor dbAccessor;
 
-    public DeleteUserCommandHandler(IDbAccessor dbAccessor)
+    public UserDeleteCommandHandler(IDbAccessor dbAccessor)
     {
         this.dbAccessor = dbAccessor;
     }

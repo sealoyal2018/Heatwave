@@ -21,7 +21,7 @@ public class UserController : ApiControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost]
-    public async Task CreateAsync(CreateUserCommand request)
+    public async Task CreateAsync(UserCreateCommand request)
         => await _mediator.Send(request);
 
 }

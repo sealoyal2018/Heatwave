@@ -3,9 +3,9 @@
 using Microsoft.EntityFrameworkCore;
 
 namespace Heatwave.Infrastructure.Persistence.Configurations.System;
-internal class RoleEntityTypeConfiguration : IEntityTypeConfiguration<Role>
+internal class RoleEntityTypeConfiguration : IEntityTypeConfiguration<TenantRole>
 {
-    public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Role> builder)
+    public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<TenantRole> builder)
     {
 
         builder.ToTable("sys_role", b => b.HasComment("角色表"));

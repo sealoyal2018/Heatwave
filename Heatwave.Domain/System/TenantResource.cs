@@ -1,13 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Security.AccessControl;
 
 namespace Heatwave.Domain.System;
 
-public class RoleResource : EntityBase
+[Table("sys_tenant_resource")]
+public class TenantResource : EntityBase, ITenant
 {
-    public long RoleId { get; set; }
-
+    public long TenantId { get; set; }
     public long ResourceId { get; set; }
 
     public virtual Resource Resource { get; set; }

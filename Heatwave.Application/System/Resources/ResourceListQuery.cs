@@ -1,23 +1,40 @@
-﻿using Chocolate.Domain.System;
+﻿using AutoMapper;
 
-namespace Chocolate.Application.System.Resources;
+using Heatwave.Domain;
+using Heatwave.Domain.System;
 
-public record ResourceListQuery: IQuery<IReadOnlyList<Resource>>;
+namespace Heatwave.Application.System.Resources;
 
-public class ResourceListQueryHandler : IQueryHandler<ResourceListQuery, IReadOnlyList<Resource>>
+public record ResourceListQuery(long TenantId) : IQuery<ICollection<ResourceDigest>>;
+
+public class ResourceDigest : Resource
 {
-    private readonly IFreeSql freeSql;
+}
 
-    public ResourceListQueryHandler(IFreeSql freeSql)
+public class ResourceListQueryHandler : IQueryHandler<ResourceListQuery, ICollection<ResourceDigest>>
+{
+    private readonly IDbAccessor dbAccessor;
+    private readonly ICurrentUser currentUser;
+    private readonly IMapper mapper;
+    public ResourceListQueryHandler(IDbAccessor dbAccessor, ICurrentUser currentUser, IMapper mapper)
     {
-        this.freeSql = freeSql;
+        this.dbAccessor = dbAccessor;
+        this.currentUser = currentUser;
+        this.mapper = mapper;
     }
 
-    public async Task<IReadOnlyList<Resource>> Handle(ResourceListQuery request, CancellationToken cancellationToken)
+
+    public async Task<ICollection<ResourceDigest>> Handle(ResourceListQuery request, CancellationToken cancellationToken)
     {
-        var resources = await freeSql.GetRepository<Resource>()
-            .Select
+        if (request.TenantId != GlobalContants.AdminTenantId)
+        {
+
+        }
+
+        var tenantResources = await dbAccessor.GetIQueryable<TenantResource>()
+            .Include(t => t.Resource)
+            .Where(v => v.TenantId == request.TenantId)
             .ToListAsync();
-        return resources;
+        return  mapper.Map<List<ResourceDigest>>(tenantResources.Select(v => v.Resource));
     }
 }

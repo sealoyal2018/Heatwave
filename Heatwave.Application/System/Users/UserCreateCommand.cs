@@ -5,8 +5,9 @@ using Heatwave.Domain;
 using Heatwave.Domain.System;
 
 namespace Heatwave.Application.System.Users;
-public record CreateUserCommand : ICommand
+public record UserCreateCommand : ICommand
 {
+    public long TenantId { get; set; }
     public string NickName { get; set; }
     public string Email { get; set; }
     public string PhoneNumber { get; set; }
@@ -16,19 +17,19 @@ public record CreateUserCommand : ICommand
     public ICollection<long> RoleIds { get; set; }
 }
 
-public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
+public class UserCreateCommandHandler : ICommandHandler<UserCreateCommand>
 {
     private readonly IDateTimeService dateTimeService;
     private readonly IDbAccessor dbAccessor;
 
-    public CreateUserCommandHandler(IDbAccessor dbAccessor, IDateTimeService dateTimeService)
+    public UserCreateCommandHandler(IDbAccessor dbAccessor, IDateTimeService dateTimeService)
     {
         this.dateTimeService = dateTimeService;
         this.dbAccessor = dbAccessor;
     }
 
     [Transaction]
-    public async Task Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UserCreateCommand request, CancellationToken cancellationToken)
     {
         var newUser = new User
         {
@@ -37,22 +38,29 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             Password = request.Password,
-            UserType = request.UserType,
         };
 
-        await dbAccessor.InsertAsync(newUser);
+        var tenantUser = new TenantUser
+        {
+            Id = IdHelper.GetLong(),
+            TenantId = request.TenantId,
+            UserId = newUser.Id,
+        };
+
         if (request.RoleIds.IsNotNullOrEmpty())
         {
-            var userRoles = request.RoleIds.Select(v => new UserRole
+            var userRoles = request.RoleIds.Select(v => new TenantUserRole
             {
                 Id = IdHelper.GetLong(),
                 RoleId = v,
                 UserId = newUser.Id,
+                TenantId = request.TenantId,
             }).ToList();
 
-            throw new BusException("给予错误");
             await dbAccessor.InsertAsync(userRoles);
         }
+        await dbAccessor.InsertAsync(tenantUser);
+        await dbAccessor.InsertAsync(newUser);
     }
 }
 

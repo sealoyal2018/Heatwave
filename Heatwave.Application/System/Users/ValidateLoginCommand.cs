@@ -1,11 +1,9 @@
 ﻿using Heatwave.Domain;
 using Heatwave.Domain.System;
 
-using Microsoft.EntityFrameworkCore;
-
 namespace Heatwave.Application.System.Users;
 
-public record ValidateLoginCommand(string UserName, string Password, string Code, string Key): ICommand<User>;
+public record ValidateLoginCommand(long TenantId, string UserName, string Password, string Code, string Key): ICommand<User>;
 
 public class ValidateLoginCommandHandler : ICommandHandler<ValidateLoginCommand, User>
 {

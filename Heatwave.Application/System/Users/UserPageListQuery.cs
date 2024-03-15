@@ -37,7 +37,7 @@ public class UserPageListQueryHandler : IQueryHandler<UserPageListQuery, Paginat
         if (res.Items.IsNotNullOrEmpty())
         {
             var userIds = res.Items.Select(v => v.Id).ToList();
-            var userRoles = await dbAccessor.GetIQueryable<UserRole>().Include(v => v.Role).Where(v => userIds.Contains(v.UserId)).ToListAsync();
+            var userRoles = await dbAccessor.GetIQueryable<TenantUserRole>().Include(v => v.Role).Where(v => userIds.Contains(v.UserId)).ToListAsync();
             foreach(var item in res.Items)
             {
                 if(userRoles is not null)
