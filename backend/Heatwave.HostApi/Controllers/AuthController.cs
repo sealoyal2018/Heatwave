@@ -1,5 +1,6 @@
 ﻿using Heatwave.Application.Extensions;
 using Heatwave.Application.Interfaces;
+using Heatwave.Application.System.Tenants;
 using Heatwave.Application.System.Users;
 using Heatwave.Application.System.UserTokens;
 using Heatwave.Domain;
@@ -37,6 +38,11 @@ public class AuthController : ApiControllerBase
     [AllowAnonymous]
     public async Task<CaptchaDto> CaptcheAsync()
         => await captchaService.Generate();
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ICollection<TenantDigest>> Tenant(string username)
+        => await mediator.Send(new TenantDataByLoginNameQuery(username));
 
     /// <summary>
     /// 登录

@@ -9,8 +9,6 @@ public class TenantUser : EntityBase, ITenant
     /// 用户类型
     /// </summary>
     public UserType UserType { get; set; } = UserType.Default;
-
-    public virtual Tenant Tenant { get; set; }
 }
 
 public enum UserType

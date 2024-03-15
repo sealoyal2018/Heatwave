@@ -47,13 +47,13 @@ internal class AppDbContext : DbContext
                 builder = ISoftDeletedExtensions.AddSoftDeletedQueryFilter(builder);
 
             Expression<Func<ITenant, bool>> expr = e => currentUser.TenantIds.Contains(e.TenantId);
-            if (typeof(ITenant).IsAssignableFrom(type))
-            {
-                modelBuilder.Entity(type).Property<Boolean>(nameof(ITenant.TenantId));
-                var parameter = Expression.Parameter(type, "e");
-                var body = Expression.Equal(Expression.Call(typeof(EF), nameof(EF.Property), new[] { typeof(bool) }, parameter, Expression.Constant(nameof(ITenant.TenantId))), Expression.Constant(false));
-                modelBuilder.Entity(type).HasQueryFilter(Expression.Lambda(body, parameter));
-            }
+            //if (typeof(ITenant).IsAssignableFrom(type))
+            //{
+            //    modelBuilder.Entity(type).Property<long>(nameof(ITenant.TenantId));
+            //    var parameter = Expression.Parameter(type, "e");
+            //    var body = Expression.Equal(Expression.Call(typeof(EF), nameof(EF.Property), new[] { typeof(bool) }, parameter, Expression.Constant(nameof(ITenant.TenantId))), Expression.Constant(false));
+            //    modelBuilder.Entity(type).HasQueryFilter(Expression.Lambda(body, parameter));
+            //}
         }
         this.Filter<User>(FilterKeys.SoftDeleted, t => t.Where(v => !v.IsDeleted));
         this.Filter<ITenant>(FilterKeys.Tenant, t => t.Where(v => v.TenantId == 3));

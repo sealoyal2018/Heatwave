@@ -50,11 +50,24 @@ export function logout() {
 export function getCodeImg() {
 
   return request({
-    url: '/account/captcha-image',
+    url: '/api/Auth/Captche',
     headers: {
       isToken: false
     },
     method: 'get',
     timeout: 20000
   })
+}
+
+export async function getTenantByUserName(username){
+
+  const res = await request({
+    url: '/api/auth/Tenant?username='+username,
+    method: 'get',
+    headers: {
+      isToken: false,
+    },
+    timeout: 2000
+  });
+  return res.data;
 }

@@ -9,6 +9,4 @@ public class TenantRoleResource : EntityBase, ITenant
     public long RoleId { get; set; }
 
     public long ResourceId { get; set; }
-
-    public virtual Resource Resource { get; set; }
 }
