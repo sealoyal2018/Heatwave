@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+﻿namespace Heatwave.Domain.System;
 
-namespace Heatwave.Domain.System;
+[Table("sys_tenant_user")]
 public class TenantUser : EntityBase, ITenant
 {
     public long UserId { get; set; }
@@ -9,6 +9,8 @@ public class TenantUser : EntityBase, ITenant
     /// 用户类型
     /// </summary>
     public UserType UserType { get; set; } = UserType.Default;
+
+    public virtual Tenant Tenant { get; set; }
 }
 
 public enum UserType
