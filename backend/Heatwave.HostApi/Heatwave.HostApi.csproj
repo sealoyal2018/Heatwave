@@ -8,6 +8,10 @@
 
 	<PropertyGroup>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
+		<UserSecretsId>212fe58e-2c93-4587-9325-dbf2c6ee9f36</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 	
 	<ItemGroup>
@@ -21,6 +25,9 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.7" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.7" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
 		<PackageReference Include="NSwag.AspNetCore" Version="14.0.3" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
@@ -28,6 +35,19 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Heatwave.Infrastructure\Heatwave.Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ContainerEnvironmentVariable Include="ASPNETCORE_HTTPS_PORTS">
+	    <Value>8081</Value>
+	  </ContainerEnvironmentVariable>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Dockerfile">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Remove="Properties\PublishProfiles\FolderProfile.pubxml" />
 	</ItemGroup>
 
 </Project>
