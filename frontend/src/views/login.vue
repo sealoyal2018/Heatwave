@@ -7,9 +7,9 @@
           <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
-      <el-form-item prop="tenentId">
-        <el-select style="width:100%" v-model="loginForm.tenentId" placeholder="请选择租户" size="large">
-          <el-option v-for="item in tenants" :key="item.Id" :label="item.Name" :value="item.Id"></el-option>
+      <el-form-item prop="tenantId">
+        <el-select style="width:100%" v-model="loginForm.tenantId" placeholder="请选择租户" size="large">
+          <el-option v-for="item in tenants" :key="item.Id" :label="item.name" :value="item.id"></el-option>
         </el-select>
         <template #prefix><svg-icon icon-class="OfficeBuilding" class="el-input__icon input-icon" /></template>
       </el-form-item>
@@ -63,7 +63,7 @@ const loginForm = reactive({
   rememberMe: false,
   code: "",
   key: "",
-  tenentId: null,
+  tenantId: null,
 });
 
 const tenants = ref([]);
@@ -87,23 +87,11 @@ function handleLogin() {
   proxy.$refs.loginRef.validate(valid => {
     if (valid) {
       loading.value = true;
-      // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
-      if (loginForm.rememberMe) {
-        Cookies.set("username", loginForm.username, { expires: 30 });
-        Cookies.set("password", encrypt(loginForm.password), { expires: 30 });
-        Cookies.set("rememberMe", loginForm.rememberMe, { expires: 30 });
-      } else {
-        // 否则移除
-        Cookies.remove("username");
-        Cookies.remove("password");
-        Cookies.remove("rememberMe");
-      }
       // 调用action的登录方法
       userStore.login(loginForm).then(() => {
         router.push({ path: redirect.value || "/" });
       }).catch(() => {
         loading.value = false;
-
         // 重新获取验证码
         if (captchaEnabled.value) {
           getCode();
@@ -117,8 +105,8 @@ function getCode() {
   getCodeImg().then(res => {
     captchaEnabled.value = true;
     if (captchaEnabled.value) {
-      codeUrl.value = "data:image/gif;base64," + res.data.data.captcha;
-      loginForm.key = res.data.data.key;
+      codeUrl.value = "data:image/gif;base64," + res.captcha;
+      loginForm.key = res.key;
     }
   });
 }
@@ -136,7 +124,7 @@ async function usernameChanged(){
   if(loginForm !== '')
   {
     const data = await getTenantByUserName(loginForm.username);
-    console.log('data >>>>>> ', data);
+    tenants.value = data;
   }
 }
 

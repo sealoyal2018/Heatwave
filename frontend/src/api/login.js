@@ -1,21 +1,9 @@
 import request from '@/utils/request'
+import {get, post} from '@/utils/http'
 
 // 登录方法
-export function login(username, password, code, uuid) {
-  const data = {
-    username,
-    password,
-    code,
-    uuid
-  }
-  return request({
-    url: '/account/login',
-    headers: {
-      isToken: false
-    },
-    method: 'post',
-    data: data
-  })
+export function login(data) {
+  return post('/api/auth/token',data, false);
 }
 
 // 注册方法
@@ -32,10 +20,7 @@ export function register(data) {
 
 // 获取用户详细信息
 export function getInfo() {
-  return request({
-    url: '/account',
-    method: 'get'
-  })
+  return get('/api/user/info')
 }
 
 // 退出方法
@@ -48,26 +33,9 @@ export function logout() {
 
 // 获取验证码
 export function getCodeImg() {
-
-  return request({
-    url: '/api/Auth/Captche',
-    headers: {
-      isToken: false
-    },
-    method: 'get',
-    timeout: 20000
-  })
+  return get('/api/Auth/Captche');
 }
 
-export async function getTenantByUserName(username){
-
-  const res = await request({
-    url: '/api/auth/Tenant?username='+username,
-    method: 'get',
-    headers: {
-      isToken: false,
-    },
-    timeout: 2000
-  });
-  return res.data;
+export function getTenantByUserName(username){
+  return get('/api/auth/Tenant', {username: username})
 }

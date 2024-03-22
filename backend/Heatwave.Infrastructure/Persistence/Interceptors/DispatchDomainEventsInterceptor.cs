@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Heatwave.Infrastructure.DI;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Heatwave.Infrastructure.Persistence.Interceptors;
 
@@ -38,6 +39,12 @@ internal class DispatchDomainEventsInterceptor : SaveChangesInterceptor, IScoped
             .Entries<EntityBase>()
             .Where(e => e.Entity.DomainEvents.Any())
             .Select(e => e.Entity);
+
+        if (entities is null)
+            return;
+        entities.TryGetNonEnumeratedCount(out var count);
+        if (count < 1)
+            return;
 
         var domainEvents = entities
             .SelectMany(e => e.DomainEvents)
