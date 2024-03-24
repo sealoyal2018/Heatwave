@@ -9,6 +9,7 @@ public interface ICurrentUser
     string Token { get; }
     bool IsAuthenticated { get; }
     List<long> TenantIds { get; }
+    long TenantId { get; }
 }
 
 
@@ -19,4 +20,5 @@ public static class HeatwaveClaimTypes
     public const string Email = "Heatwave.Email";
     public const string UserType = "Heatwave.UserType";
     public const string Token = "Heatwave.Token";
+    public const string TenantId = "Heatwave.TenantId";
 }

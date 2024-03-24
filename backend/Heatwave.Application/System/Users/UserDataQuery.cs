@@ -25,10 +25,14 @@ public class UserDataQueryHandler : IQueryHandler<UserDataQuery, UserDisplay>
             .FirstAsync();
 
         var data = mapper.Map<UserDisplay>(user);
-        var roles =  await dbAccessor.GetIQueryable<TenantUserRole>()
-            .Include(v => v.Role)
+        var tenantUserRoles =  await dbAccessor.GetIQueryable<TenantUserRole>()
             .Where(v => v.UserId == request.Id)
-            .Select(v=> v.Role)
+            .ToListAsync();
+
+        var tenantUserRoleIds = tenantUserRoles.Select(v=> v.RoleId).ToList();
+
+        var roles = await dbAccessor.GetIQueryable<TenantRole>()
+            .Where(v=> tenantUserRoleIds.Contains(v.Id))
             .ToListAsync();
 
         data.Roles = roles;

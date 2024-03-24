@@ -3,7 +3,14 @@ using Heatwave.Domain.System;
 
 namespace Heatwave.Application.System.Users;
 
-public record ValidateLoginCommand(long TenantId, string UserName, string Password, string Code, string Key): ICommand<User>;
+public class ValidateLoginCommand: ICommand<User>
+{
+    public long TenantId { get; set; }
+    public string UserName { get; set; }
+    public string Password { get; set; }
+    public string Code { get; set; }
+    public string Key { get; set; }
+}
 
 public class ValidateLoginCommandHandler : ICommandHandler<ValidateLoginCommand, User>
 {

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 namespace Heatwave.Domain.System;
 
 [Table("sys_user_token")]
-public class UserToken : EntityBase
+public class UserToken : EntityBase, ITenant
 {
     /// <summary>
     /// 用户编号
@@ -39,6 +39,9 @@ public class UserToken : EntityBase
     /// Token 所属用户
     /// </summary>
     public virtual User User { get; set; }
+
+
+    public long TenantId { get; set; }
 
     /// <summary>
     /// 生成token

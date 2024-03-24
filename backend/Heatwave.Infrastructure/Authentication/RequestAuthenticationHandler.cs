@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 using AutoMapper;
 
 using Heatwave.Application.Interfaces;
+using Heatwave.Application.System.Users;
 using Heatwave.Application.System.UserTokens;
 using Heatwave.Domain;
-
+using Heatwave.Domain.System;
 using MediatR;
 
 using Microsoft.AspNetCore.Authentication;
@@ -54,12 +55,16 @@ public class RequestAuthenticationHandler : AuthenticationHandler<RequestAuthent
             if(userToken.ExpirationDate.AddMinutes(2) < dateTimeService.Current())
                 return AuthenticateResult.Fail("Invalid Token!");
 
+            //var user = await this.mediator.Send(new TenantUser(userToken.UserId));
+
+
             var claims = new List<Claim>
             {
                 new(HeatwaveClaimTypes.UserId, userToken.UserId.ToString()),
                 new(HeatwaveClaimTypes.Token, token),
-                new(HeatwaveClaimTypes.UserType, token),
+                new(HeatwaveClaimTypes.UserType, "2"),
                 new(ClaimTypes.NameIdentifier, userToken.UserId.ToString()),
+                new(HeatwaveClaimTypes.TenantId, userToken.TenantId.ToString()),
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, nameof(RequestAuthenticationHandler));

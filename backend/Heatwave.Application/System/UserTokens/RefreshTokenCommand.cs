@@ -4,24 +4,26 @@ using Heatwave.Domain.System;
 
 
 namespace Heatwave.Application.System.UserTokens;
-public record RefreshTokenCommand(long userId, string refreshToken) : ICommand<UserToken>;
+public record RefreshTokenCommand(string RefreshToken) : ICommand<UserToken>;
 
 public class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCommand, UserToken>
 {
     private readonly IDbAccessor dbAccessor;
     private readonly IDateTimeService dateTimeService;
+    private readonly ICurrentUser currentUser;
 
-    public RefreshTokenCommandHandler(IDbAccessor dbAccessor, IDateTimeService dateTimeService)
+    public RefreshTokenCommandHandler(IDbAccessor dbAccessor, IDateTimeService dateTimeService, ICurrentUser currentUser)
     {
         this.dbAccessor = dbAccessor;
         this.dateTimeService = dateTimeService;
+        this.currentUser = currentUser;
     }
 
     public async Task<UserToken> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var userToken = await this.dbAccessor.GetIQueryable<UserToken>()
             .Include(t => t.User)
-            .Where(v => v.RefreshToken == request.refreshToken && v.UserId == request.userId)
+            .Where(v => v.RefreshToken == request.RefreshToken && v.UserId == currentUser.UserId)
             .FirstOrDefaultAsync();
         if (userToken is null)
             throw new BusException("refresh token 无效", 401);

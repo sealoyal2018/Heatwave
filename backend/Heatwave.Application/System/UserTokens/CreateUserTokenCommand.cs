@@ -4,7 +4,7 @@ using Heatwave.Domain.System;
 
 namespace Heatwave.Application.System.UserTokens;
 
-public record CreateUserTokenCommand(long UserId, string IpAddress) : ICommand<UserToken>;
+public record CreateUserTokenCommand(long TenantId, long UserId, string IpAddress) : ICommand<UserToken>;
 
 public class CreateUserTokenCommandHandler : ICommandHandler<CreateUserTokenCommand, UserToken>
 {
@@ -24,9 +24,10 @@ public class CreateUserTokenCommandHandler : ICommandHandler<CreateUserTokenComm
         var newUserToken = new UserToken
         {
             Id = IdHelper.GetLong(),
-            ExpirationDate = dateTimeService.Current().AddMinutes(10),
+            ExpirationDate = dateTimeService.Current().AddMinutes(30),
             UserId = request.UserId,
             IpAddress = request.IpAddress,
+            TenantId = request.TenantId,
             RefreshTokenExpirationDate = dateTimeService.Current().AddMonths(1)
         };
         newUserToken.Token = newUserToken.GenerateToken();

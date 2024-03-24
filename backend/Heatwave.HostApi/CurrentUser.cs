@@ -20,11 +20,13 @@ public class CurrentUser : ICurrentUser, IScoped
 
     public string Token => this.FindClaimValue(HeatwaveClaimTypes.Token);
 
-    public UserType UserType => this.FindClaimValue<UserType>(HeatwaveClaimTypes.UserType);
+    public UserType UserType => (UserType)Int32.Parse(this.FindClaimValue(HeatwaveClaimTypes.UserType));
 
     public bool IsAuthenticated => this.httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
     public List<long> TenantIds => [];
+
+    public long TenantId => this.FindClaimValue<long>(HeatwaveClaimTypes.TenantId);
 
     public virtual Claim FindClaim(string claimType)
     {

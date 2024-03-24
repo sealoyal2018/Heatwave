@@ -2,10 +2,9 @@
 public interface INode<TData>
 {
     long Id { get; }
-    long? Pid { get; }
-    string Text { get; }
-    bool Checked { get; set; }
-    int Sort { get; }
+    long? ParentId { get; }
+    string Title { get; }
+    int Rank { get; }
     ICollection<TData> Children { get; set; }
 }
 
@@ -17,16 +16,16 @@ public static class TreeNodeExtensions
         if (nodes is null || !nodes.Any())
             return new List<TNode>();
 
-        var pids = nodes.Where(v => v.Pid.HasValue).Select(v => v.Pid!.Value).ToList();
+        var pids = nodes.Where(v => v.ParentId.HasValue).Select(v => v.ParentId!.Value).ToList();
         if (pids is null)
             return new List<TNode>();
-        var ids = nodes.Where(v => v.Pid is not null).Select(v => v.Id).ToList();
+        var ids = nodes.Where(v => v.ParentId is not null).Select(v => v.Id).ToList();
 
-        var pNodes = nodes.Where(v => !v.Pid.HasValue || pids.Contains(v.Id)).ToList();
+        var pNodes = nodes.Where(v => !v.ParentId.HasValue || pids.Contains(v.Id)).ToList();
 
         foreach (var node in nodes)
         {
-            var n = nodes.FirstOrDefault(v => v.Id == node.Pid);
+            var n = nodes.FirstOrDefault(v => v.Id == node.ParentId);
             if (n is not null)
             {
                 if (n.Children is null)

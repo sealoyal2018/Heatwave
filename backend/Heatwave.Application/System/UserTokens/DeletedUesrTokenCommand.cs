@@ -42,6 +42,6 @@ public class DeletedUesrTokenCommandHandler : ICommandHandler<DeletedUesrTokenCo
         if (userTokens.IsNullOrEmpty())
             return;
         var userTokenIds = userTokens.Select(v => v.Id).ToList();
-        await _dbAccessor.DeleteAsync(userTokenIds);
+        await _dbAccessor.DeleteAsync<UserToken>(userTokenIds);
     }
 }
