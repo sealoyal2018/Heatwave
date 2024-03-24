@@ -1,191 +1,134 @@
+<script setup lang="ts">
+import Search from "./search/index.vue";
+import Notice from "./notice/index.vue";
+import mixNav from "./sidebar/mixNav.vue";
+import { useNav } from "@/layout/hooks/useNav";
+import FullScreen from "./sidebar/fullScreen.vue";
+import Breadcrumb from "./sidebar/breadCrumb.vue";
+import topCollapse from "./sidebar/topCollapse.vue";
+import LogoutCircleRLine from "@iconify-icons/ri/logout-circle-r-line";
+import Setting from "@iconify-icons/ri/settings-3-line";
+
+const {
+  layout,
+  device,
+  logout,
+  onPanel,
+  pureApp,
+  username,
+  userAvatar,
+  avatarsStyle,
+  toggleSideBar
+} = useNav();
+</script>
+
 <template>
-  <div class="navbar">
-    <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-    <breadcrumb id="breadcrumb-container" class="breadcrumb-container" v-if="!settingsStore.topNav" />
-    <top-nav id="topmenu-container" class="topmenu-container" v-if="settingsStore.topNav" />
+  <div class="navbar bg-[#fff] shadow-sm shadow-[rgba(0,21,41,0.08)]">
+    <topCollapse
+      v-if="device === 'mobile'"
+      class="hamburger-container"
+      :is-active="pureApp.sidebar.opened"
+      @toggleClick="toggleSideBar"
+    />
 
-    <div class="right-menu">
-      <template v-if="appStore.device !== 'mobile'">
-        <header-search id="header-search" class="right-menu-item" />
+    <Breadcrumb
+      v-if="layout !== 'mix' && device !== 'mobile'"
+      class="breadcrumb-container"
+    />
 
-        <el-tooltip content="源码地址" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip>
+    <mixNav v-if="layout === 'mix'" />
 
-        <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
-
-        <el-tooltip content="布局大小" effect="dark" placement="bottom">
-          <size-select id="size-select" class="right-menu-item hover-effect" />
-        </el-tooltip>
-      </template>
-      <div class="avatar-container">
-        <el-dropdown @command="handleCommand" class="right-menu-item hover-effect" trigger="click">
-          <div class="avatar-wrapper">
-            <img :src="userStore.avatar" class="user-avatar" />
-            <el-icon><caret-bottom /></el-icon>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <router-link to="/user/profile">
-                <el-dropdown-item>个人中心</el-dropdown-item>
-              </router-link>
-              <el-dropdown-item command="setLayout">
-                <span>布局设置</span>
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <span>退出登录</span>
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+    <div v-if="layout === 'vertical'" class="vertical-header-right">
+      <!-- 菜单搜索 -->
+      <Search id="header-search" />
+      <!-- 全屏 -->
+      <FullScreen id="full-screen" />
+      <!-- 消息通知 -->
+      <Notice id="header-notice" />
+      <!-- 退出登录 -->
+      <el-dropdown trigger="click">
+        <span class="el-dropdown-link navbar-bg-hover select-none">
+          <img :src="userAvatar" :style="avatarsStyle" />
+          <p v-if="username" class="dark:text-white">{{ username }}</p>
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu class="logout">
+            <el-dropdown-item @click="logout">
+              <IconifyIconOffline
+                :icon="LogoutCircleRLine"
+                style="margin: 5px"
+              />
+              退出系统
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <span
+        class="set-icon navbar-bg-hover"
+        title="打开项目配置"
+        @click="onPanel"
+      >
+        <IconifyIconOffline :icon="Setting" />
+      </span>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ElMessageBox } from 'element-plus'
-import Breadcrumb from '@/components/Breadcrumb'
-import TopNav from '@/components/TopNav'
-import Hamburger from '@/components/Hamburger'
-import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
-import HeaderSearch from '@/components/HeaderSearch'
-import RuoYiGit from '@/components/RuoYi/Git'
-import RuoYiDoc from '@/components/RuoYi/Doc'
-import useAppStore from '@/store/modules/app'
-import useUserStore from '@/store/modules/user'
-import useSettingsStore from '@/store/modules/settings'
-
-const appStore = useAppStore()
-const userStore = useUserStore()
-const settingsStore = useSettingsStore()
-
-function toggleSideBar() {
-  appStore.toggleSideBar()
-}
-
-function handleCommand(command) {
-  switch (command) {
-    case "setLayout":
-      setLayout();
-      break;
-    case "logout":
-      logout();
-      break;
-    default:
-      break;
-  }
-}
-
-function logout() {
-  ElMessageBox.confirm('确定注销并退出系统吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    userStore.logOut().then(() => {
-      location.href = '/index';
-    })
-  }).catch(() => { });
-}
-
-const emits = defineEmits(['setLayout'])
-function setLayout() {
-  emits('setLayout');
-}
-</script>
-
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .navbar {
-  height: 50px;
+  width: 100%;
+  height: 48px;
   overflow: hidden;
-  position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
   .hamburger-container {
-    line-height: 46px;
-    height: 100%;
     float: left;
+    height: 100%;
+    line-height: 48px;
     cursor: pointer;
-    transition: background 0.3s;
-    -webkit-tap-highlight-color: transparent;
+  }
 
-    &:hover {
-      background: rgba(0, 0, 0, 0.025);
+  .vertical-header-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 280px;
+    height: 48px;
+    color: #000000d9;
+
+    .el-dropdown-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 48px;
+      padding: 10px;
+      color: #000000d9;
+      cursor: pointer;
+
+      p {
+        font-size: 14px;
+      }
+
+      img {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+      }
     }
   }
 
   .breadcrumb-container {
     float: left;
+    margin-left: 16px;
   }
+}
 
-  .topmenu-container {
-    position: absolute;
-    left: 50px;
-  }
+.logout {
+  max-width: 120px;
 
-  .errLog-container {
-    display: inline-block;
-    vertical-align: top;
-  }
-
-  .right-menu {
-    float: right;
-    height: 100%;
-    line-height: 50px;
-    display: flex;
-
-    &:focus {
-      outline: none;
-    }
-
-    .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
-      font-size: 18px;
-      color: #5a5e66;
-      vertical-align: text-bottom;
-
-      &.hover-effect {
-        cursor: pointer;
-        transition: background 0.3s;
-
-        &:hover {
-          background: rgba(0, 0, 0, 0.025);
-        }
-      }
-    }
-
-    .avatar-container {
-      margin-right: 40px;
-
-      .avatar-wrapper {
-        margin-top: 5px;
-        position: relative;
-
-        .user-avatar {
-          cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-        }
-
-        i {
-          cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
-          font-size: 12px;
-        }
-      }
-    }
+  ::v-deep(.el-dropdown-menu__item) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    min-width: 100%;
   }
 }
 </style>

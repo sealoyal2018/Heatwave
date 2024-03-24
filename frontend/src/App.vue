@@ -1,28 +1,25 @@
 <template>
-  <router-view />
+  <el-config-provider :locale="currentLocale">
+    <router-view />
+    <ReDialog />
+  </el-config-provider>
 </template>
 
-<script setup>
-import useSettingsStore from '@/store/modules/settings'
-import { handleThemeStyle } from '@/utils/theme'
-import useUserStore from '@/store/modules/user'
-import { storeToRefs } from 'pinia';
-import signalR from '@/utils/signalR'
-
-const {token}=storeToRefs(useUserStore());
-
-onMounted(async () => {
-  await  signalR.init(`main`);
-  nextTick(() => {
-    // 初始化主题样式
-    handleThemeStyle(useSettingsStore().theme)
-  })
-})
-
-
-//这里还需要监视token的变化，重新进行signalr连接
-watch(()=>token.value,async (newValue,oldValue)=>{
-  await  signalR.init(`main`);
-})
-
+<script lang="ts">
+import { defineComponent } from "vue";
+import { ElConfigProvider } from "element-plus";
+import zhCn from "element-plus/dist/locale/zh-cn.mjs";
+import { ReDialog } from "@/components/ReDialog";
+export default defineComponent({
+  name: "app",
+  components: {
+    [ElConfigProvider.name]: ElConfigProvider,
+    ReDialog
+  },
+  computed: {
+    currentLocale() {
+      return zhCn;
+    }
+  }
+});
 </script>
