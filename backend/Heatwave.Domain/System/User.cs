@@ -22,7 +22,7 @@ public class User : AuditableEntity
     /// <summary>
     /// 密码
     /// </summary>
-    public string Password { get; set; }
+    public string PasswordId { get; set; }
 
     /// <summary>
     /// 电话号码 

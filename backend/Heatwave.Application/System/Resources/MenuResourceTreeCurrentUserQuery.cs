@@ -28,7 +28,7 @@ public class MenuResourceTreeCurrentUserQueryHandler : IQueryHandler<MenuResourc
         {
             var superResources = await dbAccessor.GetIQueryable<Resource>()
                 .Select(selectExpr)
-                .Where(v => v.Type != ResourceType.Action)
+                .Where(v => v.Type != ResourceType.Request)
                 .ToListAsync();
             return superResources.Build().ToList();
         }
@@ -41,7 +41,7 @@ public class MenuResourceTreeCurrentUserQueryHandler : IQueryHandler<MenuResourc
             var tenantResourceIds = tenanetResources.Select(v => v.TenantId).ToList();
             var superResources = await dbAccessor.GetIQueryable<Resource>()
                 .Select(selectExpr)
-                .Where(v => tenantResourceIds.Contains(v.Id) && v.Type != ResourceType.Action)
+                .Where(v => tenantResourceIds.Contains(v.Id) && v.Type != ResourceType.Request)
                 .ToListAsync();
 
             return superResources.Build().ToList();
@@ -60,7 +60,7 @@ public class MenuResourceTreeCurrentUserQueryHandler : IQueryHandler<MenuResourc
         var resourceIds = roleResources.Select(v => v.ResourceId).ToList();
         var resources = await dbAccessor.GetIQueryable<Resource>()
             .Select(selectExpr)
-            .Where(v => resourceIds.Contains(v.Id) && v.Type != ResourceType.Action)
+            .Where(v => resourceIds.Contains(v.Id) && v.Type != ResourceType.Request)
             .ToListAsync();
         return resources.Build().ToList();
     }

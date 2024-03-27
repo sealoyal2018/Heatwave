@@ -1,31 +1,64 @@
-﻿using Heatwave.Domain;
+﻿using FluentValidation;
+using Heatwave.Domain;
 using Heatwave.Domain.System;
 
 namespace Heatwave.Application.System.Resources;
-public class ResourceEditCommand : Resource, ICommand, IMapFrom<Resource>
+
+public class ResourceEditCommand : Resource, ICommand;
+
+public class ResourceEditCommandValidator : AbstractValidator<ResourceEditCommand>
 {
+    public ResourceEditCommandValidator()
+    {
+        RuleFor(v => v.Title).NotEmpty().Length(50);
+    }
 }
 
-
-public class ResourceEditCommandHandler : ICommandHandler<ResourceEditCommand>
+public class EditResourceCommandHandler: ICommandHandler<ResourceEditCommand>
 {
-    private readonly IDbAccessor dbAccessor;
+    private readonly IDbAccessor _dbAccessor;
 
-    public ResourceEditCommandHandler(IDbAccessor dbAccessor)
+    public EditResourceCommandHandler(IDbAccessor dbAccessor)
     {
-        this.dbAccessor = dbAccessor;
+        _dbAccessor = dbAccessor;
     }
 
     public async Task Handle(ResourceEditCommand request, CancellationToken cancellationToken)
     {
-        if(request.Id < 1)
+        if (request.Type == ResourceType.Request)
         {
-            request.Id = IdHelper.GetLong();
-            await dbAccessor.InsertAsync<Resource>(request);
+            if (!request.PermissionCode.IsNotNullOrAny())
+                throw new BusException("权限不能为空");
+            if (!request.ParentId.HasValue)
+                throw new BusException("父级数据不能为空");
+        }
+        else if (request.Type == ResourceType.Catalogue)
+        {
+            if (request.Component.IsNullOrEmpty())
+                throw new BusException("路由组件不能为空");   
+            if (request.Path.IsNullOrEmpty())
+                throw new BusException("路由地址不能为空"); 
         }
         else
         {
-            await dbAccessor.UpdateAsync<Resource>(request);
+            if (request.Component.IsNullOrEmpty())
+                throw new BusException("路由地址不能为空"); 
+            
+            if (request.Path.IsNullOrEmpty())
+                throw new BusException("路由地址不能为空"); 
+        }
+        
+        
+        if (request.Id > 0)
+        {
+            // 新增
+            request.Id = IdHelper.GetLong();
+            await _dbAccessor.InsertAsync(request, cancellation: cancellationToken);
+        }
+        else
+        {
+            // 编辑
+            await _dbAccessor.UpdateAsync(request, cancellation: cancellationToken);
         }
     }
-}
+} 

@@ -37,9 +37,9 @@ public class UserCreateCommandHandler : ICommandHandler<UserCreateCommand>
             NickName = request.NickName,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
-            Password = request.Password,
         };
-
+        var userPassword = new UesrPassword(newUser.Id, request.Password, EncryptType.MD5);
+        
         var tenantUser = new TenantUser
         {
             Id = IdHelper.GetLong(),
@@ -57,10 +57,11 @@ public class UserCreateCommandHandler : ICommandHandler<UserCreateCommand>
                 TenantId = request.TenantId,
             }).ToList();
 
-            await dbAccessor.InsertAsync(userRoles);
+            await dbAccessor.InsertAsync(userRoles, cancellation: cancellationToken);
         }
-        await dbAccessor.InsertAsync(tenantUser);
-        await dbAccessor.InsertAsync(newUser);
+        await dbAccessor.InsertAsync(tenantUser, cancellation: cancellationToken);
+        await dbAccessor.InsertAsync(userPassword, cancellation: cancellationToken);
+        await dbAccessor.InsertAsync(newUser, cancellation: cancellationToken);
     }
 }
 

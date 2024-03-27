@@ -22,7 +22,7 @@ public class Resource : AuditableEntity
     public string? Title { get; set; }
 
     /// <summary>
-    /// 组件名称
+    /// 前端组件名称
     /// </summary>
     public string? Name { get; set; }
 
@@ -102,5 +102,5 @@ public enum ResourceType
     /// <summary>
     /// 请求
     /// </summary>
-    Action = 3,
+    Request = 3,
 }

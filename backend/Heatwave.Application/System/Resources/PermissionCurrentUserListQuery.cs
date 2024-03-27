@@ -32,7 +32,7 @@ public class PermissionCurrentUserListQueryHandler : IQueryHandler<PermissionCur
             .ToListAsync();
         var resourceIds = roleResources.Select(v => v.ResourceId).ToList();
         var resources = await dbAccessor.GetIQueryable<Resource>()
-            .Where(v => resourceIds.Contains(v.Id) && v.Type == ResourceType.Action)
+            .Where(v => resourceIds.Contains(v.Id) && v.Type == ResourceType.Request)
             .ToListAsync();
         return resources.Select(v=> v.PermissionCode).ToList();
     }
