@@ -24,9 +24,9 @@ public class TenantRoleUpdateCommandHandler : ICommandHandler<TenantRoleUpdateCo
         await dbAccessor.UpdateAsync<TenantRole>(
             t => t.Id == request.Id,
             s => s.SetProperty(t => t.Name, request.Name)
-                .SetProperty(t => t.Description, request.Description));
+                .SetProperty(t => t.Description, request.Description), cancellation: cancellationToken);
 
-        _ = await dbAccessor.DeleteAsync<TenantRoleResource>(v => v.RoleId == request.Id);
+        _ = await dbAccessor.DeleteAsync<TenantRoleResource>(v => v.RoleId == request.Id, cancellationToken);
         var roleResources = request.ResourceIds.Select(v => new TenantRoleResource
         {
             Id = IdHelper.GetLong(),

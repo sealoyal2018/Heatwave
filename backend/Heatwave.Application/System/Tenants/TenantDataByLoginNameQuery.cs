@@ -27,13 +27,13 @@ public class TenantDataByLoginNameQueryHandler : IQueryHandler<TenantDataByLogin
                 PhoneNumber = v.PhoneNumber
             })
             .Where(v => v.Email == request.UserName || v.PhoneNumber == request.UserName)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
         var userIds = users.Select(v => v.Id).ToList();
 
         var userTeants = await dbAccessor.GetIQueryable<TenantUser>()
             .Include(v => v.Tenant)
             .Where(v => userIds.Contains(v.UserId))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return mapper.Map<List<TenantDigest>>(userTeants.Select(v => v.Tenant).ToList());
     }
