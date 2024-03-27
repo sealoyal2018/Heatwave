@@ -6,12 +6,10 @@ public record TenantRoleCreateCommand(long TenantId, string Name, string Desc, L
 
 public class TenantRoleCreateCommandHandle(IDbAccessor dbAccessor) : ICommandHandler<TenantRoleCreateCommand>
 {
-    private readonly IDbAccessor dbAccessor = dbAccessor;
-
     public async Task Handle(TenantRoleCreateCommand request, CancellationToken cancellationToken)
     {
         var ret = await dbAccessor.GetIQueryable<TenantRole>()
-            .AnyAsync(v => v.TenantId == request.TenantId && v.Name == request.Name);
+            .AnyAsync(v => v.TenantId == request.TenantId && v.Name == request.Name, cancellationToken: cancellationToken);
         if (ret)
             throw new BusException("名称重复");
 
@@ -31,7 +29,7 @@ public class TenantRoleCreateCommandHandle(IDbAccessor dbAccessor) : ICommandHan
             TenantId = request.TenantId,
         }).ToList();
 
-        await dbAccessor.InsertAsync(newRole);
-        await dbAccessor.InsertAsync(roleResources);
+        await dbAccessor.InsertAsync(newRole, cancellation: cancellationToken);
+        await dbAccessor.InsertAsync(roleResources, cancellation: cancellationToken);
     }
 }

@@ -18,7 +18,6 @@ public class TenantDataByLoginNameQueryHandler : IQueryHandler<TenantDataByLogin
         this.mapper = mapper;
     }
 
-
     public async Task<ICollection<TenantDigest>> Handle(TenantDataByLoginNameQuery request, CancellationToken cancellationToken)
     {
         var users = await dbAccessor.GetIQueryable<User>()
