@@ -60,7 +60,7 @@ public interface IDbAccessor
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="entities">实体对象集合</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> InsertAsync<T>(List<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> InsertAsync<T>(ICollection<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class;
     #endregion
 
     #region 删除数据
@@ -77,7 +77,7 @@ public interface IDbAccessor
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="keys">多条记录主键集合</param>
-    Task<int> DeleteAsync<T>(List<long> keys, CancellationToken cancellation = default) where T : EntityBase;
+    Task<int> DeleteAsync<T>(ICollection<long> keys, CancellationToken cancellation = default) where T : EntityBase;
 
     /// <summary>
     /// 删除所有记录
@@ -97,7 +97,7 @@ public interface IDbAccessor
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="entities">实体对象集合</param>
-    Task<int> DeleteAsync<T>(List<T> entities, CancellationToken cancellation = default) where T : class;
+    Task<int> DeleteAsync<T>(ICollection<T> entities, CancellationToken cancellation = default) where T : class;
 
     /// <summary>
     /// 按条件删除记录
@@ -124,7 +124,7 @@ public interface IDbAccessor
     /// <typeparam name="T">实体泛型</typeparam>
     /// <param name="entities">实体对象集合</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> UpdateAsync<T>(List<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> UpdateAsync<T>(ICollection<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class;
 
     /// <summary>
     /// 更新单条记录的某些属性
@@ -133,7 +133,7 @@ public interface IDbAccessor
     /// <param name="entity">实体对象</param>
     /// <param name="properties">属性</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> UpdateAsync<T>(T entity, List<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> UpdateAsync<T>(T entity, ICollection<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class;
 
     /// <summary>
     /// 更新多条记录的某些属性
@@ -142,16 +142,16 @@ public interface IDbAccessor
     /// <param name="entities">实体对象集合</param>
     /// <param name="properties">属性</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> UpdateAsync<T>(List<T> entities, List<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> UpdateAsync<T>(ICollection<T> entities, ICollection<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class;
 
     /// <summary>
     /// 按照条件更新记录
     /// </summary>
     /// <typeparam name="T">实体泛型</typeparam>
-    /// <param name="whereExpre">筛选条件</param>
+    /// <param name="whereExpr">筛选条件</param>
     /// <param name="action">更新操作</param>
     /// <param name="tracking">是否开启实体追踪</param>
-    Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpre, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> action, bool tracking = false, CancellationToken cancellation = default) where T : class;
+    Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpr, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> action, bool tracking = false, CancellationToken cancellation = default) where T : class;
     #endregion
 
     #region 查询数据

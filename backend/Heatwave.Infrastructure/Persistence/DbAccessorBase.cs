@@ -1,9 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Linq.Dynamic.Core;
 using Heatwave.Domain;
 
@@ -13,29 +10,14 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace Heatwave.Infrastructure.Persistence;
 
-internal abstract class DbAccessorBase : IDbAccessor
+internal abstract class DbAccessorBase(AppDbContext dbContext) : IDbAccessor
 {
-    private readonly DbContext dbContext;
+    private readonly DbContext dbContext = dbContext;
     protected IDbContextTransaction? _transaction;
 
     public abstract DbProviderFactory DbProviderFactory { get; }
 
     public string ConnectionString => dbContext.Database.GetConnectionString();
-
-    public DbAccessorBase(AppDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-    }
-
-    protected static List<PropertyInfo> GetKeyPropertys(Type type)
-    {
-        var properties = type
-            .GetProperties()
-            .Where(x => x.GetCustomAttributes(true).Select(o => o.GetType().FullName).Contains(typeof(KeyAttribute).FullName))
-            .ToList();
-
-        return properties;
-    }
 
     #region 新增
     public async Task<int> InsertAsync<T>(T entity, bool tracking = false, CancellationToken cancellation = default) where T : class
@@ -44,7 +26,7 @@ internal abstract class DbAccessorBase : IDbAccessor
         return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> InsertAsync<T>(List<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class
+    public async Task<int> InsertAsync<T>(ICollection<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class
     {
         await dbContext.Set<T>().AddRangeAsync(entities, cancellation);
         return await dbContext.SaveChangesAsync(cancellation);
@@ -58,32 +40,32 @@ internal abstract class DbAccessorBase : IDbAccessor
         return await DeleteAsync<T>([key], cancellation);
     }
 
-    public async Task<int> DeleteAsync<T>(List<long> keys, CancellationToken cancellation = default) where T : EntityBase
+    public async Task<int> DeleteAsync<T>(ICollection<long> keys, CancellationToken cancellation = default) where T : EntityBase
     {
-        return await dbContext.Set<T>().Where(v => keys.Contains(v.Id)).ExecuteDeleteAsync();
+        return await dbContext.Set<T>().Where(v => keys.Contains(v.Id)).ExecuteDeleteAsync(cancellationToken: cancellation);
     }
 
     public async Task<int> DeleteAllAsync<T>(CancellationToken cancellation = default) where T : class
     {
         await dbContext.Set<T>().ExecuteDeleteAsync(cancellation);
-        return await dbContext.SaveChangesAsync();
+        return await dbContext.SaveChangesAsync(cancellation);
     }
 
     public async Task<int> DeleteAsync<T>(T entity, CancellationToken cancellation = default) where T : class
     {
         dbContext.Set<T>().Remove(entity);
-        return await dbContext.SaveChangesAsync();
+        return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> DeleteAsync<T>(List<T> entities, CancellationToken cancellation = default) where T : class
+    public async Task<int> DeleteAsync<T>(ICollection<T> entities, CancellationToken cancellation = default) where T : class
     {
         dbContext.Set<T>().RemoveRange(entities);
-        return await dbContext.SaveChangesAsync();
+        return await dbContext.SaveChangesAsync(cancellation);
     }
 
     public async Task<int> DeleteAsync<T>(Expression<Func<T, bool>> condition, CancellationToken cancellation = default) where T : class
     {
-        return await dbContext.Set<T>().Where(condition).ExecuteDeleteAsync();
+        return await dbContext.Set<T>().Where(condition).ExecuteDeleteAsync(cancellationToken: cancellation);
     }
     #endregion 删除
 
@@ -96,41 +78,41 @@ internal abstract class DbAccessorBase : IDbAccessor
         return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> UpdateAsync<T>(List<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class
+    public async Task<int> UpdateAsync<T>(ICollection<T> entities, bool tracking = false, CancellationToken cancellation = default) where T : class
     {
-        entities.ForEach(aEntity =>
+        foreach (var entity in entities)
         {
-            dbContext.Entry(aEntity).State = EntityState.Modified;
-        });
+            dbContext.Entry(entity).State = EntityState.Modified;
+        }
 
         return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> UpdateAsync<T>(T entity, List<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class
+    public async Task<int> UpdateAsync<T>(T entity, ICollection<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class
     {
-        properties.ForEach(aProperty =>
+        foreach (var property in properties)
         {
-            dbContext.Entry(entity).Property(aProperty).IsModified = true;
-        });
+            dbContext.Entry(entity).Property(property).IsModified = true;
+        }
 
         return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> UpdateAsync<T>(List<T> entities, List<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class
+    public async Task<int> UpdateAsync<T>(ICollection<T> entities, ICollection<string> properties, bool tracking = false, CancellationToken cancellation = default) where T : class
     {
-        entities.ForEach(aEntity =>
+        foreach (var entity in entities)
         {
-            properties.ForEach(aProperty =>
+            foreach (var property in properties)
             {
-                dbContext.Entry(aEntity).Property(aProperty).IsModified = true;
-            });
-        });
+                dbContext.Entry(entity).Property(property).IsModified = true;
+            }
+        }
         return await dbContext.SaveChangesAsync(cancellation);
     }
 
-    public async Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpre, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> action, bool tracking = false, CancellationToken cancellation = default) where T : class
+    public async Task<int> UpdateAsync<T>(Expression<Func<T, bool>> whereExpr, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> action, bool tracking = false, CancellationToken cancellation = default) where T : class
     {
-        return await dbContext.Set<T>().Where(whereExpre).ExecuteUpdateAsync(action);
+        return await dbContext.Set<T>().Where(whereExpr).ExecuteUpdateAsync(action, cancellationToken: cancellation);
     }
 
     #endregion

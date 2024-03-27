@@ -1,18 +1,22 @@
 ﻿using Heatwave.Domain.System;
 using AutoMapper;
 using System.Linq.Expressions;
-using Heatwave.Domain;
-using Microsoft.EntityFrameworkCore;
+using LinqKit;
 
 namespace Heatwave.Application.System.Users;
-public class UserPageListQuery : PaginatedInputBase, IQuery<PaginatedList<UserDegist>>
+
+/// <summary>
+/// 用户分页获取
+/// </summary>
+public class UserPageListQuery : PaginatedInputBase, IQuery<PaginatedList<UserDigest>>
 {
+    public long TenantId { get; set; }
     public string NickName { get; set; }
     public string PhoneNumber { get; set; }
     public UserType? UserType { get; set; }
 }
 
-public class UserPageListQueryHandler : IQueryHandler<UserPageListQuery, PaginatedList<UserDegist>>
+public class UserPageListQueryHandler : IQueryHandler<UserPageListQuery, PaginatedList<UserDigest>>
 {
     private readonly IDbAccessor dbAccessor;
     private readonly IMapper _mapper;
@@ -23,32 +27,38 @@ public class UserPageListQueryHandler : IQueryHandler<UserPageListQuery, Paginat
         this.dbAccessor = dbAccessor;
     }
 
-    public async Task<PaginatedList<UserDegist>> Handle(UserPageListQuery request, CancellationToken cancellationToken)
-    {
-        Expression<Func<User, UserDegist>> selectExpr = a => new UserDegist { };
-        selectExpr = selectExpr.BuildExtendSelectExpre();
-        var res = await dbAccessor.GetIQueryable<User>()
-            .Select(selectExpr)
-            .WhereIf(request.NickName.IsNotNullOrEmpty(), v => v.NickName.Contains(v.NickName))
-            .WhereIf(request.PhoneNumber.IsNotNullOrEmpty(), v => v.PhoneNumber.Contains(v.PhoneNumber))
-            .WhereIf(request.UserType.HasValue, v => v.UserType == request.UserType)
-            .ToPageAsync(request);
-
-        if (res.Items.IsNotNullOrEmpty())
+    public async Task<PaginatedList<UserDigest>> Handle(UserPageListQuery request, CancellationToken cancellationToken)
+    {        
+        Expression<Func<User, TenantUser, UserDigest>> selectExpr = (a,t) => new UserDigest
         {
-            var userIds = res.Items.Select(v => v.Id).ToList();
-            var userRoles = await dbAccessor.GetIQueryable<TenantUserRole>().Include(v => v.Role).Where(v => userIds.Contains(v.UserId)).ToListAsync();
-            foreach(var item in res.Items)
-            {
-                if(userRoles is not null)
-                    item.RoleNames = userRoles.Where(v => v.UserId == item.Id).Where(v=> v.Role is not null).Select(v => v.Role?.Name).ToList();
-            }
+            UserType = t.UserType,
+        };
+        selectExpr = selectExpr.BuildExtendSelectExpre();
+        var whereExpr = Linq.Expr<UserDigest, bool>(v=> true)
+            .AndIf(request.NickName.IsNotNullOrAny(), v => v.NickName.Contains(request.NickName))
+            .AndIf(request.PhoneNumber.IsNotNullOrAny(), v => v.PhoneNumber.Contains(request.PhoneNumber))
+            .AndIf(request.UserType.HasValue, v => v.UserType == request.UserType);
+        
+        var queryable = from u in dbAccessor.GetIQueryable<User>(cancellation: cancellationToken).AsExpandable()
+            join t in dbAccessor.GetIQueryable<TenantUser>(cancellation: cancellationToken).Select(v=> new TenantUser{Id = v.Id, UserId = v.UserId}) on u.Id equals t.UserId 
+            select selectExpr.Invoke(u,t);
+                
+        var res = await queryable.Where(whereExpr).ToPageAsync(request);
+
+        if (!res.Items.IsNotNullOrEmpty())
+            return res;
+        var userIds = res.Items.Select(v => v.Id).ToList();
+        var userRoles = await dbAccessor.GetIQueryable<TenantUserRole>().Include(v => v.Role).Where(v => userIds.Contains(v.UserId)).ToListAsync();
+        foreach(var item in res.Items)
+        {
+            if(userRoles is not null)
+                item.RoleNames = userRoles.Where(v => v.UserId == item.Id).Where(v=> v.Role is not null).Select(v => v.Role?.Name).ToList();
         }
         return res;
     }
 }
 
-public class UserDegist
+public class UserDigest
 {
     public long Id { get; set; }
 
