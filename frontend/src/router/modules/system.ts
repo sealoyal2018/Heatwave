@@ -21,6 +21,16 @@ export default {
         showLink: true,
         showParent: true,
       }
+    },
+    {
+      path: "/appplatform/list",
+      name: "appplatforms",
+      component: () => import("@/views/appplatform/list.vue"),
+      meta: {
+        title: "应用管理",
+        showLink: true,
+        showParent: true,
+      }
     }
   ]
 } satisfies RouteConfigsTable;

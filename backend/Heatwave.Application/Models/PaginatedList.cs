@@ -14,10 +14,6 @@ public class PaginatedList<T>
         Items = items;
     }
 
-    public bool HasPreviousPage => PageNumber > 1;
-
-    public bool HasNextPage => PageNumber < TotalPages;
-
     public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize)
     {
         throw new NotImplementedException();
@@ -35,7 +31,7 @@ public class PaginatedInputBase
     /// <summary>
     /// 页大小
     /// </summary>
-    public int Size { get; set; }
+    public int Size { get; set; } = 10;
     /// <summary>
     /// 当前页
     /// </summary>
@@ -52,9 +48,9 @@ public class PaginatedInputBase
     /// <summary>
     /// 排序字段
     /// </summary>
-    public string Fields { get; set; }
+    public string Fields { get; set; } = "id";
     /// <summary>
     /// 排序方案(aes,desc)
     /// </summary>
-    public string Orders { get; set; }
+    public string Orders { get; set; } = "desc";
 }

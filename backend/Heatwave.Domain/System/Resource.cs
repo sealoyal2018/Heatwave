@@ -7,9 +7,9 @@
 public class Resource : AuditableEntity
 {
     /// <summary>
-    /// 程序资源id
+    /// 所属平台
     /// </summary>
-    public long AppId { get; set; }
+    public long AppPlatformId { get; set; }
     
     /// <summary>
     /// 资源类型

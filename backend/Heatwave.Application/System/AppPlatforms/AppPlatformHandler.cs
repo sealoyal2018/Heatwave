@@ -7,7 +7,9 @@ namespace Heatwave.Application.System.AppPlatforms;
 /// <summary>
 /// 查询平台列表
 /// </summary>
-public class AppPlatformPageListQuery : PaginatedInputBase, IQuery<PaginatedList<AppPlatformDigest>> { }
+public class AppPlatformPageListQuery : PaginatedInputBase, IQuery<PaginatedList<AppPlatformDigest>> {
+    public string Name { get; set; }
+}
 
 /// <summary>
 /// 更新或者编辑平台
@@ -38,6 +40,7 @@ public class AppPlatformHandler (IDbAccessor dbAccessor, IMapper mapper):
         selectExpr = selectExpr.BuildExtendSelectExpre();
 
         return await dbAccessor.GetIQueryable<AppPlatform>()
+            .WhereIf(request.Name.IsNotNullOrAny(), v=> v.Name.Contains(request.Name))
             .Select(selectExpr)
             .ToPageAsync(request);
     }

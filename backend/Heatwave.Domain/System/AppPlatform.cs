@@ -16,10 +16,10 @@ public class AppPlatform : EntityBase, ISoftDeleted
     /// <summary>
     /// key
     /// </summary>
-    public string Key { get; set; }
+    public string? Key { get; set; }
     
     /// <summary>
     /// 密钥
     /// </summary>
-    public string Secret { get; set; }
+    public string? Secret { get; set; }
 }
