@@ -7,6 +7,11 @@
 public class Resource : AuditableEntity
 {
     /// <summary>
+    /// 程序资源id
+    /// </summary>
+    public long AppId { get; set; }
+    
+    /// <summary>
     /// 资源类型
     /// </summary>
     public ResourceType Type { get; set; }
